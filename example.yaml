@@ -1,0 +1,92 @@
+---
+load:
+  - path: /path/to/file1.cif
+    block: dataP
+  - path: /path/to/file2.cif
+    block: dataP
+---
+select: iron
+from:
+  - name: Fe1
+---
+select: benzene_A
+from:
+  - name: C1
+  - name: C2
+  - name: C3
+  - name: C4
+  - name: C3
+    symm: -x,y,-z
+  - name: C2
+    symm: -x,y,-z
+---
+select: benzene_B
+from:
+  - name: benzene_A
+    symm: -x,-y,-z
+---
+centroid: benzene_A_centroid
+from: 
+  - name: benzene_A
+---
+centroid: benzene_B_centroid
+from:
+  - name: benzene_B
+---
+line: benzene_axis
+from:
+  - name: benzene_A_centroid
+  - name: Fe1
+---
+plane: benzene_A_plane
+from:
+  - benzene_A
+---
+plane: benzene_B_plane
+from:
+  - benzene_B
+---
+plane: benzene_A_plane_at_iron
+from:
+  - name: benzene_A
+at: iron
+---
+plane: benzene_common_plane_at_A
+from:
+  - name: benzene_A
+  - name: benzene_B
+    at: benzene_A_centroid
+---
+plane: benzene_common_plane_at_B
+copy: benzene_common_plane_at_A
+at: benzene_B_centroid
+---
+distance: C1-C6
+from:
+  - name: C1
+  - name: C2
+    symm: -x,y,-z
+---
+distance: benzene_to_benzene_total
+from:
+  - name: benzene_A_centroid
+  - name: benzene_B_centroid
+---
+distance: benzene_to_benzene_vertical
+from:
+  - name: benzene_common_plane_at_A
+  - name: benzene_common_plane_at_B
+---
+angle: C2-C1-C2
+from:
+  - name: C2
+  - name: C1
+  - name: C2
+    symm: -x,y,-z
+---
+angle: benzene_A_B_plane
+from:
+  - name: benzene_A_plane
+  - name: benzene_B_plane
+---
+write: /path/to/results.csv
