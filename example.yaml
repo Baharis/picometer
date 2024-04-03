@@ -29,10 +29,6 @@ centroid: benzene_A_centroid
 from: 
   - name: benzene_A
 ---
-centroid: benzene_B_centroid
-from:
-  - name: benzene_B
----
 line: benzene_axis
 from:
   - name: benzene_A_centroid
@@ -42,6 +38,7 @@ plane: benzene_A_plane
 from:
   - benzene_A
 ---
+centroid: benzene_B_centroid
 plane: benzene_B_plane
 from:
   - benzene_B
