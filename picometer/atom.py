@@ -1,12 +1,20 @@
 from copy import deepcopy
+from typing import Dict, Iterable, NamedTuple, List
 
 import hikari.symmetry
 from hikari.dataframes import BaseFrame, CifFrame
 import numpy as np
 import pandas as pd
-from typing import Dict
 
 from picometer.utility import ustr2float
+
+
+class Locator(NamedTuple):
+    label: str
+    symm_op_code: str = 'x,y,z'
+
+
+alias_registry: Dict[str, List[Locator]] = {}
 
 
 class AtomSet:
@@ -55,12 +63,6 @@ class AtomSet:
         return AtomSet(bf, atoms)
 
     @property
-    def atomized(self) -> Dict[str, 'AtomSet']:
-        """Split the single atomset into multiple single-atom ones"""
-        return {a: AtomSet(self.base, self.atoms.loc[:, a])
-                for a in self.atoms.index}
-
-    @property
     def fract_xyz(self):
         return np.vstack([self.atoms['fract_' + k].to_numpy() for k in 'xyz'])
 
@@ -76,21 +78,30 @@ class AtomSet:
         """Multiply 3xN vector by crystallographic matrix to get Cart. coord"""
         return self.base.A_d.T @ fract_xyz
 
+    def locate(self, locators: Iterable[Locator]) -> 'AtomSet':
+        """Convenience method to select multiple fragments from locators
+        while interpreting and extending aliases if necessary"""
+        new = AtomSet()
+        for label, symm_op_code in locators:
+            if label in alias_registry:
+                new2 = self.locate(locators=alias_registry[label])
+            else:
+                new2 = self.select_atom(label_regex=label)
+            new += new2.transform(symm_op_code)
+        return new
+
     def select_atom(self, label_regex: str) -> 'AtomSet':
         mask = self.atoms.index.str.match(label_regex)
         return self.__class__(self.base, deepcopy(self.atoms[mask]))
 
-    def transform(self, symm_op: hikari.symmetry.SymmOp) -> 'AtomSet':
+    def transform(self, symm_op_code: str) -> 'AtomSet':
+        symm_op = hikari.symmetry.SymmOp.from_code(symm_op_code)
         fract_xyz = symm_op.transform(self.fract_xyz.T)
         data = deepcopy(self.atoms)
         data['fract_x'] = fract_xyz[:, 0]
         data['fract_y'] = fract_xyz[:, 1]
         data['fract_z'] = fract_xyz[:, 2]
         return self.__class__(self.base, data)
-
-    def transform2(self, symm_op_code: str) -> 'AtomSet':
-        symm_op = hikari.symmetry.SymmOp.from_code(symm_op_code)
-        return self.transform(symm_op)
 
     @property
     def centroid(self):

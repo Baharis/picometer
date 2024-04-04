@@ -5,11 +5,11 @@ load:
   - path: /path/to/file2.cif
     block: dataP
 ---
-select: iron
+alias: iron
 from:
   - name: Fe1
 ---
-select: benzene_A
+alias: benzene_A
 from:
   - name: C1
   - name: C2
@@ -20,7 +20,7 @@ from:
   - name: C2
     symm: -x,y,-z
 ---
-select: benzene_B
+alias: benzene_B
 from:
   - name: benzene_A
     symm: -x,-y,-z
