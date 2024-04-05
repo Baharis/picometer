@@ -1,3 +1,4 @@
+import copy
 from copy import deepcopy
 from typing import Dict, Iterable, NamedTuple, List
 
@@ -6,7 +7,7 @@ from hikari.dataframes import BaseFrame, CifFrame
 import numpy as np
 import pandas as pd
 
-from picometer.shapes import Shape
+from picometer.shapes import Shape, Line, Plane, Vector3
 from picometer.utility import ustr2float
 
 
@@ -20,6 +21,8 @@ alias_registry: Dict[str, List[Locator]] = {}
 
 class AtomSet(Shape):
     """Container class w/ atoms stored in pd.Dataframe & convenience methods"""
+
+    kind = Shape.Kind.spatial
 
     def __init__(self,
                  bf: BaseFrame = None,
@@ -79,6 +82,12 @@ class AtomSet(Shape):
         """Multiply 3xN vector by crystallographic matrix to get Cart. coord"""
         return self.base.A_d.T @ fract_xyz
 
+    def at(self, origin: Vector3) -> 'AtomSet':
+        """Return a copy of self with centroid at new origin"""
+        new = copy.deepcopy(self)
+        new.origin = origin
+        return new
+
     def locate(self, locators: Iterable[Locator]) -> 'AtomSet':
         """Convenience method to select multiple fragments from locators
         while interpreting and extending aliases if necessary"""
@@ -110,27 +119,27 @@ class AtomSet(Shape):
         return self.cart_xyz.T.mean(axis=0)
 
     @property
-    def direction(self):
-        return np.array([0., 0., 0.], dtype=float)
+    def direction(self) -> Vector3:
+        return None
 
     @property
-    def line(self):
+    def line(self) -> Line:
         """A 3-vector describing line that best fits the cartesian
         coordinates of atoms. Based on https://stackoverflow.com/q/2298390/"""
         cart_xyz = self.cart_xyz.T
         uu, dd, vv = np.linalg.svd(cart_xyz - self.centroid)
-        return vv[0]
+        return Line(direction=vv[0], origin=self.centroid)
 
     @property
-    def plane(self):
+    def plane(self) -> Plane:
         """A 3-vector normal to plane that best fits atoms' cartesian coords.
         Based on https://gist.github.com/amroamroamro/1db8d69b4b65e8bc66a6"""
         cart_xyz = self.cart_xyz.T
         uu, dd, vv = np.linalg.svd((cart_xyz - self.centroid).T)
-        return uu[:, -1]
+        return Plane(direction=uu[:, -1], origin=self.centroid)
 
     @property
-    def origin(self):
+    def origin(self) -> Vector3:
         return self.centroid
 
     @origin.setter

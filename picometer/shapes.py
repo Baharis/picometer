@@ -23,25 +23,25 @@ def degrees_between(v: Vector3, w: Vector3) -> float:
 
 
 class Shape:
-    class ShapeKind(enum.Enum):
+    class Kind(enum.Enum):
         axial = 1  # spans in 1D along direction
         planar = 2  # spans in 2D perpendicular to direction
         spatial = 3  # spans in 0D or 3D, irrelevant direction
 
-    kind: ShapeKind
+    kind: Kind
     direction: Vector3
     origin: Vector3
 
     def angle(self, other: 'Shape') -> float:
         kinds = {self.kind, other.kind}
-        assert self.ShapeKind.spatial not in kinds, 'No angle: directionless'
+        assert self.Kind.spatial not in kinds, 'No angle: directionless'
         angle_ = degrees_between(self.direction, other.direction)
         if len(kinds) == 2:
             angle_ = 90.0 - angle_
         return angle_
 
     def distance(self, other: 'Shape') -> float:
-        assert all(x.kind is self.ShapeKind.planar for x in [self, other])
+        assert all(x.kind is self.Kind.planar for x in [self, other])
         # TODO implement distances for shapes other than planes
         if not are_parallel(self.direction, other.direction):
             return 0.0
@@ -56,8 +56,8 @@ class ExplicitShape(Shape):
 
 
 class Line(ExplicitShape):
-    kind = Shape.ShapeKind.axial
+    kind = Shape.Kind.axial
 
 
 class Plane(ExplicitShape):
-    kind = Shape.ShapeKind.planar
+    kind = Shape.Kind.planar

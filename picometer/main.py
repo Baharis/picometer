@@ -5,7 +5,7 @@ import pandas as pd
 
 from picometer.atom import alias_registry, AtomSet, Locator
 from picometer.routine import Routine, RoutineQueue
-from picometer.shapes import Shape, ExplicitShape
+from picometer.shapes import Shape, ExplicitShape, degrees_between
 
 # TODO use multipledispatch for calculating distances, angles?
 
@@ -161,8 +161,15 @@ class AngleProcess(BaseProcess):
                 else:
                     loc = Locator(from_item['name'], from_item.get('symm'))
                     shapes.append(ms.nodes.locate([loc]))
-            assert len(shapes) == 2
-            et[ms_key, angle_name] = shapes[0].angle(shapes[1])
+            if len(shapes) == 2:
+                assert not any(s.kind is Shape.Kind.spatial for s in shapes)
+                et[ms_key, angle_name] = shapes[0].angle(shapes[1])
+            if len(shapes) in {3, 4}:
+                assert all(isinstance(s, AtomSet) for s in shapes)
+                shapes: List[AtomSet]
+                line1 = (shapes[0] + shapes[1]).line
+                line2 = (shapes[-1] + shapes[-2]).line
+                et[ms_key, angle_name] = line1.angle(line2)
         return mss, et
 
 
