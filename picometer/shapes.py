@@ -1,3 +1,4 @@
+import enum
 from typing import Annotated, Literal
 import numpy as np
 import numpy.typing as npt
@@ -22,29 +23,41 @@ def degrees_between(v: Vector3, w: Vector3) -> float:
 
 
 class Shape:
-    is_axial: bool  # true for shape parallel to direction, false if perpend.
+    class ShapeKind(enum.Enum):
+        axial = 1  # spans in 1D along direction
+        planar = 2  # spans in 2D perpendicular to direction
+        spatial = 3  # spans in 0D or 3D, irrelevant direction
 
-    def __init__(self, direction: Vector3, origin: Vector3 = zero3):
-        self.direction = direction
-        self.origin = origin
+    kind: ShapeKind
+    direction: Vector3
+    origin: Vector3
 
     def angle(self, other: 'Shape') -> float:
+        kinds = {self.kind, other.kind}
+        assert self.ShapeKind.spatial not in kinds, 'No angle: directionless'
         angle_ = degrees_between(self.direction, other.direction)
-        if self.is_axial is not other.is_axial:
+        if len(kinds) == 2:
             angle_ = 90.0 - angle_
         return angle_
 
     def distance(self, other: 'Shape') -> float:
-        assert not self.is_axial and not other.is_axial  # TODO axial, points
+        assert all(x.kind is self.ShapeKind.planar for x in [self, other])
+        # TODO implement distances for shapes other than planes
         if not are_parallel(self.direction, other.direction):
             return 0.0
         distance_ = abs(np.dot(self.direction, (other.origin - self.origin)))
         return distance_
 
 
-class Line(Shape):
-    is_axial = True
+class ExplicitDirectionalShape(Shape):
+    def __init__(self, direction: Vector3, origin: Vector3 = zero3):
+        self.direction = direction
+        self.origin = origin
 
 
-class Plane(Shape):
-    is_axial = False
+class Line(ExplicitDirectionalShape):
+    kind = Shape.ShapeKind.axial
+
+
+class Plane(ExplicitDirectionalShape):
+    kind = Shape.ShapeKind.planar

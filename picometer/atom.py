@@ -6,6 +6,7 @@ from hikari.dataframes import BaseFrame, CifFrame
 import numpy as np
 import pandas as pd
 
+from picometer.shapes import Shape
 from picometer.utility import ustr2float
 
 
@@ -17,7 +18,7 @@ class Locator(NamedTuple):
 alias_registry: Dict[str, List[Locator]] = {}
 
 
-class AtomSet:
+class AtomSet(Shape):
     """Container class w/ atoms stored in pd.Dataframe & convenience methods"""
 
     def __init__(self,
@@ -109,6 +110,10 @@ class AtomSet:
         return self.cart_xyz.T.mean(axis=0)
 
     @property
+    def direction(self):
+        return np.array([0., 0., 0.], dtype=float)
+
+    @property
     def line(self):
         """A 3-vector describing line that best fits the cartesian
         coordinates of atoms. Based on https://stackoverflow.com/q/2298390/"""
@@ -123,3 +128,17 @@ class AtomSet:
         cart_xyz = self.cart_xyz.T
         uu, dd, vv = np.linalg.svd((cart_xyz - self.centroid).T)
         return uu[:, -1]
+
+    @property
+    def origin(self):
+        return self.centroid
+
+    @origin.setter
+    def origin(self, new_origin):
+        """Change origin to the new one provided in cartesian coordinates"""
+        new_origin_fract = self.fractionalise(new_origin)
+        delta = new_origin_fract - self.centroid
+        self.atoms['fract_x'] += delta[0]
+        self.atoms['fract_y'] += delta[1]
+        self.atoms['fract_z'] += delta[2]
+        assert new_origin_fract == self.centroid
