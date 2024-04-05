@@ -49,15 +49,15 @@ class Shape:
         return distance_
 
 
-class ExplicitDirectionalShape(Shape):
+class ExplicitShape(Shape):
     def __init__(self, direction: Vector3, origin: Vector3 = zero3):
         self.direction = direction
         self.origin = origin
 
 
-class Line(ExplicitDirectionalShape):
+class Line(ExplicitShape):
     kind = Shape.ShapeKind.axial
 
 
-class Plane(ExplicitDirectionalShape):
+class Plane(ExplicitShape):
     kind = Shape.ShapeKind.planar

@@ -5,7 +5,7 @@ import pandas as pd
 
 from picometer.atom import alias_registry, AtomSet, Locator
 from picometer.routine import Routine, RoutineQueue
-from picometer.shapes import Shape
+from picometer.shapes import Shape, ExplicitShape
 
 # TODO use multipledispatch for calculating distances, angles?
 
@@ -15,10 +15,10 @@ class ModelState:
     def __init__(self,
                  atoms: AtomSet,
                  centroids: AtomSet = AtomSet(),
-                 shapes: Dict[str, Shape] = None):
+                 shapes: Dict[str, ExplicitShape] = None):
         self.atoms: AtomSet = atoms
         self.centroids: AtomSet = centroids
-        self.shapes: Dict[str, Shape] = shapes if shapes else {}
+        self.shapes: Dict[str, ExplicitShape] = shapes if shapes else {}
 
     @property
     def nodes(self):
@@ -105,6 +105,72 @@ class CentroidProcess(BaseProcess):
                        'fract_y': c_fract[1], 'fract_z': c_fract[2], }
             atoms = pd.DataFrame.from_records(c_atoms).set_index('label')
             ms.centroids += AtomSet(focus.base, atoms)
+        return mss, et
+
+
+class LineProcess(BaseProcess):
+    keyword = 'line'
+
+    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
+        line_name = self.routine[self.keyword]
+        for ms_key, ms in mss.items():
+            focus = ms.nodes.locate(self.routine_locator_list)
+            ms.shapes[line_name] = focus.line
+        return mss, et
+
+
+class PlaneProcess(BaseProcess):
+    keyword = 'plane'
+
+    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
+        plane_name = self.routine[self.keyword]
+        for ms_key, ms in mss.items():
+            focus = ms.nodes.locate(self.routine_locator_list)
+            ms.shapes[plane_name] = focus.plane
+        return mss, et
+
+
+class DistanceProcess(BaseProcess):
+    keyword = 'distance'
+
+    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
+        dist_name = self.routine[self.keyword]
+        for ms_key, ms in mss.items():
+            shapes: List[Shape] = []
+            for from_item in self.routine['from']:
+                if shape_name := from_item['name'] in ms.shapes:
+                    shapes.append(ms.shapes[shape_name])
+                else:
+                    loc = Locator(from_item['name'], from_item.get('symm'))
+                    shapes.append(ms.nodes.locate([loc]))
+            assert len(shapes) == 2
+            et[ms_key, dist_name] = shapes[0].distance(shapes[1])
+        return mss, et
+
+
+class AngleProcess(BaseProcess):
+    keyword = 'angle'
+
+    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
+        angle_name = self.routine[self.keyword]
+        for ms_key, ms in mss.items():
+            shapes: List[Shape] = []
+            for from_item in self.routine['from']:
+                if shape_name := from_item['name'] in ms.shapes:
+                    shapes.append(ms.shapes[shape_name])
+                else:
+                    loc = Locator(from_item['name'], from_item.get('symm'))
+                    shapes.append(ms.nodes.locate([loc]))
+            assert len(shapes) == 2
+            et[ms_key, angle_name] = shapes[0].angle(shapes[1])
+        return mss, et
+
+
+class WriteProcess(BaseProcess):
+    keyword = 'write'
+
+    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
+        et.to_csv(path_or_buf=self.routine['write'])
         return mss, et
 
 
