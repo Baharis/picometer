@@ -1,19 +1,24 @@
 import abc
-from collections import UserDict
-from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import pandas as pd
 
 from picometer.atom import alias_registry, AtomSet, Locator
 from picometer.routine import Routine, RoutineQueue
+from picometer.shapes import Shape
+
+# TODO use multipledispatch for calculating distances, angles?
 
 
-@dataclass
 class ModelState:
     """Class describing atomsets, selections, and shapes in one structure"""
-    atoms: AtomSet
-    centroids: AtomSet = AtomSet()
+    def __init__(self,
+                 atoms: AtomSet,
+                 centroids: AtomSet = AtomSet(),
+                 shapes: Dict[str, Shape] = None):
+        self.atoms: AtomSet = atoms
+        self.centroids: AtomSet = centroids
+        self.shapes: Dict[str, Shape] = shapes if shapes else {}
 
     @property
     def nodes(self):
