@@ -1,0 +1,75 @@
+#------------------------------------------------------------------------------
+#$Date: 2016-02-14 16:26:36 +0200 (Sun, 14 Feb 2016) $
+#$Revision: 176435 $
+#$URL: svn://www.crystallography.net/cod/cif/2/10/19/2101935.cif $
+#------------------------------------------------------------------------------
+#
+# This file is available in the Crystallography Open Database (COD),
+# http://www.crystallography.net/. The original data for this entry
+# were provided by IUCr Journals, http://journals.iucr.org/.
+#
+# The file may be used within the scientific community so long as
+# proper attribution is given to the journal article from which the
+# data were obtained.
+#
+data_2101935
+loop_
+_publ_author_name
+'Brock, C. P.'
+'Fu, Y.'
+_publ_section_title
+;
+ Rigid-Body Disorder Models for the High-Temperature Phase of Ferrocene
+;
+_journal_issue                   6
+_journal_name_full               'Acta Crystallographica Section B'
+_journal_page_first              928
+_journal_page_last               938
+_journal_paper_doi               10.1107/S0108768197005132
+_journal_volume                  53
+_journal_year                    1997
+_chemical_formula_sum            'C10 H10 Fe'
+_chemical_formula_weight         186.04
+_symmetry_cell_setting           monoclinic
+_symmetry_space_group_name_Hall  '-P 2yab'
+_symmetry_space_group_name_H-M   'P 1 21/a 1'
+_cell_angle_alpha                90.0
+_cell_angle_beta                 121.05(8)
+_cell_angle_gamma                90.0
+_cell_formula_units_Z            2
+_cell_length_a                   10.530(8)
+_cell_length_b                   7.604(5)
+_cell_length_c                   5.921(4)
+_cell_volume                     406.2(7)
+_diffrn_radiation_probe          neutron
+_diffrn_radiation_type           neutron
+_diffrn_radiation_wavelength     1.0399
+_cod_data_source_file            cr0517.cif
+_cod_original_formula_sum        'C10 H10 Fe1'
+_cod_database_code               2101935
+loop_
+_atom_site_label
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Fe .0 .0 .0
+C(11) .0126(11) .2622(7) -.050(2)
+C(12) .0398(7) .1693(9) -.2250(10)
+C(13) .1621(8) .0589(8) -.077(2)
+C(14) .2105(9) .0835(12) .1908(15)
+C(15) .1180(15) .2091(12) .2075(14)
+H(11) -.0733 .3513 -.1013
+H(12) -.0222 .1774 -.4300
+H(13) .2067 -.0293 -.1518
+H(14) .2973 .0168 .3488
+H(15) .1242 .2521 .3800
+C(21) .0514(14) .2583(18) .094(2)
+C(22) .0294(13) .2178(10) -.1549(14)
+C(23) .136(2) .0924(18) -.120(2)
+C(24) .2233(6) .0553(10) .150(2)
+C(25) .171(2) .158(2) .2823(11)
+H(21) -.0126 .3443 .1316
+H(22) -.0538 .2685 -.3345
+H(23) .1452 .0336 -.2699
+H(24) .3095 -.0358 .2362
+H(25) .2120 .1563 .4843

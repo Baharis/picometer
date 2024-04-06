@@ -42,12 +42,12 @@ class AtomSet(Shape):
         return AtomSet(self.base, pd.concat([self.atoms, other.atoms], axis=0))
 
     @classmethod
-    def from_cif(cls, cif_path: str) -> 'AtomSet':
+    def from_cif(cls, cif_path: str, block_name: str = None) -> 'AtomSet':
         bf = BaseFrame()
         cf = CifFrame()
         cf.read(cif_path)
-        first_block_name = list(cf.keys())[0]
-        cb = cf[first_block_name]
+        block_name = block_name if block_name else list(cf.keys())[0]
+        cb = cf[block_name]
         bf.edit_cell(a=ustr2float(cb['_cell_length_a']),
                      b=ustr2float(cb['_cell_length_b']),
                      c=ustr2float(cb['_cell_length_c']),
