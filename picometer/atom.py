@@ -1,6 +1,6 @@
 import copy
 from copy import deepcopy
-from typing import Dict, Iterable, NamedTuple, List
+from typing import Dict, NamedTuple, List, Sequence
 
 import hikari.symmetry
 from hikari.dataframes import BaseFrame, CifFrame
@@ -12,13 +12,13 @@ from picometer.utility import ustr2float
 
 
 class Locator(NamedTuple):
-    name: str
+    label: str
     symm: str = 'x,y,z'
 
     @classmethod
     def from_dict(cls, d: dict) -> 'Locator':
         symm = d.get('symm')
-        return Locator(name=d['name'], symm=symm if symm else 'x,y,z')
+        return Locator(label=d['label'], symm=symm if symm else 'x,y,z')
 
 
 alias_registry: Dict[str, List[Locator]] = {}
@@ -31,20 +31,20 @@ class AtomSet(Shape):
 
     def __init__(self,
                  bf: BaseFrame = None,
-                 atoms: pd.DataFrame = None,
+                 table: pd.DataFrame = None,
                  ) -> None:
         self.base = bf
-        self.atoms = atoms
+        self.table = table
 
     def __len__(self):
-        return len(self.atoms.index)
+        return len(self.table.index)
 
     def __add__(self, other):
-        if not (self.base or self.atoms):
+        if not (self.base or self.table):
             return other
-        elif not (other.base or other.atoms):
+        elif not (other.base or other.table):
             return self
-        return AtomSet(self.base, pd.concat([self.atoms, other.atoms], axis=0))
+        return AtomSet(self.base, pd.concat([self.table, other.table], axis=0))
 
     @classmethod
     def from_cif(cls, cif_path: str, block_name: str = None) -> 'AtomSet':
@@ -66,6 +66,7 @@ class AtomSet(Shape):
                 'fract_y': [ustr2float(v) for v in cb['_atom_site_fract_y']],
                 'fract_z': [ustr2float(v) for v in cb['_atom_site_fract_z']],
             }
+            # print(pd.DataFrame.from_records(atoms_dict).set_index('label'))
             atoms = pd.DataFrame.from_records(atoms_dict).set_index('label')
         except KeyError:
             atoms = pd.DataFrame()
@@ -73,7 +74,7 @@ class AtomSet(Shape):
 
     @property
     def fract_xyz(self):
-        return np.vstack([self.atoms['fract_' + k].to_numpy() for k in 'xyz'])
+        return np.vstack([self.table['fract_' + k].to_numpy() for k in 'xyz'])
 
     @property
     def cart_xyz(self):
@@ -93,7 +94,7 @@ class AtomSet(Shape):
         new.origin = origin
         return new
 
-    def locate(self, locators: Iterable[Locator]) -> 'AtomSet':
+    def locate(self, locators: Sequence[Locator]) -> 'AtomSet':
         """Convenience method to select multiple fragments from locators
         while interpreting and extending aliases if necessary"""
         new = AtomSet()
@@ -107,13 +108,13 @@ class AtomSet(Shape):
         return new
 
     def select_atom(self, label_regex: str) -> 'AtomSet':
-        mask = self.atoms.index.str.match(label_regex)
-        return self.__class__(self.base, deepcopy(self.atoms[mask]))
+        mask = self.table.index.str.match(label_regex)
+        return self.__class__(self.base, deepcopy(self.table[mask]))
 
     def transform(self, symm_op_code: str) -> 'AtomSet':
         symm_op = hikari.symmetry.SymmOp.from_code(symm_op_code)
         fract_xyz = symm_op.transform(self.fract_xyz.T)
-        data = deepcopy(self.atoms)
+        data = deepcopy(self.table)
         data['fract_x'] = fract_xyz[:, 0]
         data['fract_y'] = fract_xyz[:, 1]
         data['fract_z'] = fract_xyz[:, 2]
@@ -153,7 +154,7 @@ class AtomSet(Shape):
         """Change origin to the new one provided in cartesian coordinates"""
         new_origin_fract = self.fractionalise(new_origin)
         delta = new_origin_fract - self.centroid
-        self.atoms['fract_x'] += delta[0]
-        self.atoms['fract_y'] += delta[1]
-        self.atoms['fract_z'] += delta[2]
+        self.table['fract_x'] += delta[0]
+        self.table['fract_y'] += delta[1]
+        self.table['fract_z'] += delta[2]
         assert new_origin_fract == self.centroid

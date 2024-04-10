@@ -90,8 +90,8 @@ class AliasProcess(BaseProcess):
     keyword = 'alias'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        alias_name = self.routine[self.keyword]
-        alias_registry[alias_name] = self.routine_locator_list
+        alias_label = self.routine[self.keyword]
+        alias_registry[alias_label] = self.routine_locator_list
         return mss, et
 
 
@@ -99,12 +99,12 @@ class CentroidProcess(BaseProcess):
     keyword = 'centroid'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        centroid_name = self.routine[self.keyword]
+        centroid_label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
             focus = ms.nodes.locate(self.routine_locator_list)
             c_fract = focus.fractionalise(focus.centroid)
-            c_atoms = {'label': centroid_name, 'fract_x': c_fract[0],
-                       'fract_y': c_fract[1], 'fract_z': c_fract[2], }
+            c_atoms = {'label': [centroid_label], 'fract_x': [c_fract[0]],
+                       'fract_y': [c_fract[1]], 'fract_z': [c_fract[2]], }
             atoms = pd.DataFrame.from_records(c_atoms).set_index('label')
             ms.centroids += AtomSet(focus.base, atoms)
         return mss, et
@@ -114,10 +114,10 @@ class LineProcess(BaseProcess):
     keyword = 'line'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        line_name = self.routine[self.keyword]
+        line_label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
             focus = ms.nodes.locate(self.routine_locator_list)
-            ms.shapes[line_name] = focus.line
+            ms.shapes[line_label] = focus.line
         return mss, et
 
 
@@ -125,10 +125,10 @@ class PlaneProcess(BaseProcess):
     keyword = 'plane'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        plane_name = self.routine[self.keyword]
+        plane_label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
             focus = ms.nodes.locate(self.routine_locator_list)
-            ms.shapes[plane_name] = focus.plane
+            ms.shapes[plane_label] = focus.plane
         return mss, et
 
 
@@ -136,17 +136,17 @@ class DistanceProcess(BaseProcess):
     keyword = 'distance'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        dist_name = self.routine[self.keyword]
+        dist_label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
             shapes: List[Shape] = []
             for from_item in self.routine['from']:
-                if shape_name := from_item['name'] in ms.shapes:
-                    shapes.append(ms.shapes[shape_name])
+                if shape_label := from_item['label'] in ms.shapes:
+                    shapes.append(ms.shapes[shape_label])
                 else:
                     loc = Locator.from_dict(from_item)
                     shapes.append(ms.nodes.locate([loc]))
             assert len(shapes) == 2
-            et[ms_key, dist_name] = shapes[0].distance(shapes[1])
+            et[ms_key, dist_label] = shapes[0].distance(shapes[1])
         return mss, et
 
 
@@ -154,24 +154,24 @@ class AngleProcess(BaseProcess):
     keyword = 'angle'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        angle_name = self.routine[self.keyword]
+        angle_label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
             shapes: List[Shape] = []
             for from_item in self.routine['from']:
-                if shape_name := from_item['name'] in ms.shapes:
-                    shapes.append(ms.shapes[shape_name])
+                if shape_label := from_item['label'] in ms.shapes:
+                    shapes.append(ms.shapes[shape_label])
                 else:
-                    loc = Locator(from_item['name'], from_item.get('symm'))
+                    loc = Locator(from_item['label'], from_item.get('symm'))
                     shapes.append(ms.nodes.locate([loc]))
             if len(shapes) == 2:
                 assert not any(s.kind is Shape.Kind.spatial for s in shapes)
-                et[ms_key, angle_name] = shapes[0].angle(shapes[1])
+                et[ms_key, angle_label] = shapes[0].angle(shapes[1])
             if len(shapes) in {3, 4}:
                 assert all(isinstance(s, AtomSet) for s in shapes)
                 shapes: List[AtomSet]
                 line1 = (shapes[0] + shapes[1]).line
                 line2 = (shapes[-1] + shapes[-2]).line
-                et[ms_key, angle_name] = line1.angle(line2)
+                et[ms_key, angle_label] = line1.angle(line2)
         return mss, et
 
 

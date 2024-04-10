@@ -9,36 +9,36 @@ load:
 # Select certain objects using 'from' and 'alias' them for later use
 alias: iron
 from:
-  - name: Fe1
+  - label: Fe1
 ---
 # You can 'alias' a group of objects and their symmetry equivalents
 alias: benzene_A
 from:
-  - name: C1
-  - name: C2
-  - name: C3
-  - name: C4
-  - name: C3
+  - label: C1
+  - label: C2
+  - label: C3
+  - label: C4
+  - label: C3
     symm: -x,y,-z
-  - name: C2
+  - label: C2
     symm: -x,y,-z
 ---
 # You can just as well 'alias' an existing alias
 alias: benzene_B
 from:
-  - name: benzene_A
+  - label: benzene_A
     symm: -x,-y,-z
 ---
 # Define a 'centroid' of selected objects (or their aliases)
 centroid: benzene_A_centroid
 from: 
-  - name: benzene_A
+  - label: benzene_A
 ---
 # Define a 'line' passing through selected nodes (atoms or centroids)
 line: benzene_axis
 from:
-  - name: benzene_A_centroid
-  - name: Fe1
+  - label: benzene_A_centroid
+  - label: Fe1
 ---
 # Define a 'plane' in the same way.
 plane: benzene_A_plane
@@ -57,14 +57,14 @@ from:
 # Keyword 'at' can be used to translate origin of the shape
 plane: benzene_A_plane_at_iron
 from:
-  - name: benzene_A
+  - label: benzene_A
 at: iron
 ---
 # Keyword 'at' can be also used to temporarily move centroid of selection
 plane: benzene_common_plane_at_A
 from:
-  - name: benzene_A
-  - name: benzene_B
+  - label: benzene_A
+  - label: benzene_B
     at: benzene_A_centroid
 ---
 # Instead of selecting and fitting shape each time, you can 'copy' existing one
@@ -75,33 +75,33 @@ at: benzene_B_centroid
 # Use keyword 'distance' to calculate distance between two selected objects
 distance: C1-C6
 from:
-  - name: C1
-  - name: C2
+  - label: C1
+  - label: C2
     symm: -x,y,-z
 ---
 # 'distance' can be measured between any objects, including centroids & shapes
 distance: benzene_to_benzene_total
 from:
-  - name: benzene_A_centroid
-  - name: benzene_B_centroid
+  - label: benzene_A_centroid
+  - label: benzene_B_centroid
 ---
 distance: benzene_to_benzene_vertical
 from:
-  - name: benzene_common_plane_at_A
-  - name: benzene_common_plane_at_B
+  - label: benzene_common_plane_at_A
+  - label: benzene_common_plane_at_B
 ---
 # Calculate 'angle' between two to four objects, based on their type
 angle: C2-C1-C2
 from:
-  - name: C2
-  - name: C1
-  - name: C2
+  - label: C2
+  - label: C1
+  - label: C2
     symm: -x,y,-z
 ---
 angle: benzene_A_B_plane
 from:
-  - name: benzene_A_plane
-  - name: benzene_B_plane
+  - label: benzene_A_plane
+  - label: benzene_B_plane
 ---
 # 'write' results of all performed calculations into an excel-readable csv file
 write: /path/to/results.csv

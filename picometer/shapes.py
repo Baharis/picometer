@@ -32,6 +32,10 @@ class Shape:
     direction: Vector3
     origin: Vector3
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f'{name}(direction={self.direction}, origin={self.origin})'
+
     def angle(self, other: 'Shape') -> float:
         kinds = {self.kind, other.kind}
         assert self.Kind.spatial not in kinds, 'No angle: directionless'
