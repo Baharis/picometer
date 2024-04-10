@@ -4,8 +4,10 @@ from typing import Iterable
 import unittest
 
 
+from picometer.atom import alias_registry, Locator
 from picometer.parser import parse, parse_path
-from picometer.routine import RoutineQueue
+from picometer.routine import Routine, RoutineQueue
+from picometer.main import process_routine_queue
 
 
 class TestParser(unittest.TestCase):
@@ -39,12 +41,26 @@ class TestProcedures(unittest.TestCase):
         cls.full_routine_queue = parse_path(routine_path)
 
     def slice_routine_queue(self, routine_ids: Iterable[int]) -> RoutineQueue:
-        return [RoutineQueue(r) for i, r in enumerate(self.full_routine_queue)
-                if i in routine_ids]
+        return RoutineQueue([Routine(r) for i, r in enumerate(self.full_routine_queue)
+                if i in routine_ids])
 
-    def test_alias_atom(self) -> None:
+    def test_load(self):
+        routine_queue = self.slice_routine_queue([0, ])
+        mss, _ = process_routine_queue(routine_queue)
+        for _, ms in mss.items():
+            self.assertEqual(ms.atoms.atoms.loc['Fe', 'fract_x'], 0.0)
+
+    def test_make_alias(self) -> None:
         routine_queue = self.slice_routine_queue([0, 1])
+        _, _ = process_routine_queue(routine_queue)
+        self.assertEqual(alias_registry['iron'], [Locator('Fe1')])
 
+    def test_access_alias(self) -> None:
+        routine_queue = self.slice_routine_queue([0, 1])
+        mss, _ = process_routine_queue(routine_queue)
+        for _, ms in mss.items():
+            self.assertEqual(ms.atoms.locate([Locator('Fe')]).atoms.index,
+                             ms.atoms.locate([Locator('iron')]).atoms.index)
 
 
 if __name__ == '__main__':

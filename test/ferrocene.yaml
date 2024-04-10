@@ -11,7 +11,7 @@ load:
 # 1
 alias: iron
 from:
-  - name: Fe1
+  - name: Fe
 ---
 # 2
 alias: cpa_A
@@ -33,7 +33,7 @@ from:
 line: benzene_axis
 from:
   - name: benzene_A_centroid
-  - name: Fe1
+  - name: Fe
 ---
 # Define a 'plane' in the same way.
 plane: benzene_A_plane

@@ -12,8 +12,13 @@ from picometer.utility import ustr2float
 
 
 class Locator(NamedTuple):
-    label: str
-    symm_op_code: str = 'x,y,z'
+    name: str
+    symm: str = 'x,y,z'
+
+    @classmethod
+    def from_dict(cls, d: dict) -> 'Locator':
+        symm = d.get('symm')
+        return Locator(name=d['name'], symm=symm if symm else 'x,y,z')
 
 
 alias_registry: Dict[str, List[Locator]] = {}
@@ -92,6 +97,7 @@ class AtomSet(Shape):
         """Convenience method to select multiple fragments from locators
         while interpreting and extending aliases if necessary"""
         new = AtomSet()
+        assert len(locators) == 0 or isinstance(locators[0], Locator)
         for label, symm_op_code in locators:
             if label in alias_registry:
                 new2 = self.locate(locators=alias_registry[label])

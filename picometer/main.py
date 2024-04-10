@@ -66,7 +66,7 @@ class BaseProcess(metaclass=ProcessRegistrar):
 
     @property
     def routine_locator_list(self) -> List[Locator]:
-        return [Locator(from_item['name'], from_item.get('symm', None))
+        return [Locator.from_dict(from_item)
                 for from_item in self.routine['from']]
 
 
@@ -78,8 +78,10 @@ class LoadProcess(BaseProcess):
         # TODO: read selected block if specified
         model_states: ModelStates = {}
         for cif_block_address in self.routine['load']:
-            atoms = AtomSet.from_cif(cif_path=cif_block_address['path'])
-            label = (cif_block_address['path'], cif_block_address['block'])
+            cif_path = cif_block_address['path']
+            block_name = cif_block_address.get('block')
+            atoms = AtomSet.from_cif(cif_path=cif_path, block_name=block_name)
+            label = cif_path + (':' + block_name if block_name else '')
             model_states[label] = ModelState(atoms=atoms)
         return model_states, et
 
@@ -141,7 +143,7 @@ class DistanceProcess(BaseProcess):
                 if shape_name := from_item['name'] in ms.shapes:
                     shapes.append(ms.shapes[shape_name])
                 else:
-                    loc = Locator(from_item['name'], from_item.get('symm'))
+                    loc = Locator.from_dict(from_item)
                     shapes.append(ms.nodes.locate([loc]))
             assert len(shapes) == 2
             et[ms_key, dist_name] = shapes[0].distance(shapes[1])
@@ -181,19 +183,18 @@ class WriteProcess(BaseProcess):
         return mss, et
 
 
-def process_routine_queue(rq: RoutineQueue):
+def process_routine_queue(rq: RoutineQueue) -> ProcessOut:
     mss = ModelStates()
     et = EvaluationTable()
     for routine in rq:
         process = BaseProcess.from_routine(routine)
         mss, et = process(mss, et)
-    return et
+    return mss, et
 
 
 def main():
     from picometer.parser import parse_path
     routine_queue = parse_path('../example.yaml')
-    print(routine_queue)
     process_routine_queue(routine_queue)
 
 
