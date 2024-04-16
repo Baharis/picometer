@@ -1,3 +1,4 @@
+import copy
 import enum
 from typing import Annotated, Literal
 import numpy as np
@@ -35,6 +36,12 @@ class Shape:
     def __repr__(self):
         name = self.__class__.__name__
         return f'{name}(direction={self.direction}, origin={self.origin})'
+
+    def at(self, origin: Vector3) -> 'Shape':
+        """Return a copy of self with centroid at new origin"""
+        new = copy.deepcopy(self)
+        new.origin = np.array(origin, dtype=float)
+        return new
 
     def angle(self, other: 'Shape') -> float:
         kinds = {self.kind, other.kind}

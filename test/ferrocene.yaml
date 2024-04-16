@@ -40,27 +40,45 @@ plane: cp_A_plane
 from:
   - label: cp_A
 ---
-# For the time being, each routine must include at most one definition
-centroid: benzene_B_centroid
+# 7
+centroid: cp_B_centroid
 from:
-  - benzene_B
+  - cp_B
 ---
-plane: benzene_B_plane
+# 8
+plane: cp_B_plane
 from:
-  - benzene_B
+  - cp_B
 ---
-# Keyword 'at' can be used to translate origin of the shape
-plane: benzene_A_plane_at_iron
+# 9
+line: ferrocene_axis_at_next_cell
 from:
-  - label: benzene_A
-at: iron
+  - label: cp_A_centroid
+  - label: Fe
+at:
+  - label: Fe
+    symm: x+1,y,z
 ---
-# Keyword 'at' can be also used to temporarily move centroid of selection
-plane: benzene_common_plane_at_A
+# 10
+plane: cp_A_plane_at_iron
 from:
-  - label: benzene_A
-  - label: benzene_B
-    at: benzene_A_centroid
+  - label: cp_B
+at:
+  - label: iron
+
+---
+# 11
+alias: cp_B_at_cp_A
+from:
+  - label: cp_B
+    at: cp_A
+---
+# 12
+plane: cp_common_plane_at_A
+from:
+  - label: cp_A
+  - label: cp_B
+    at: cp_A_centroid
 ---
 # Instead of selecting and fitting shape each time, you can 'copy' existing one
 plane: benzene_common_plane_at_B

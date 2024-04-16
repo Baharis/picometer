@@ -110,6 +110,32 @@ class TestProcedures(unittest.TestCase):
             correct = np.array([0.680, 0.730, 0.070])
             self.assertTrue(np.allclose(d, correct, atol=0.01))
 
+    def test_line_at_symm(self):
+        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 9])
+        mss, _ = process_routine_queue(routine_queue)
+        for _, ms in mss.items():
+            o = ms.shapes['ferrocene_axis_at_next_cell'].origin
+            self.assertGreater(o[0], 10.442)
+            self.assertLess(o[0], 10.531)
+
+    def test_plane_at_alias(self):
+        routine_queue = self.slice_routine_queue([0, 1, 2, 6, 10])
+        mss, _ = process_routine_queue(routine_queue)
+        for _, ms in mss.items():
+            o = ms.shapes['cp_A_plane_at_iron'].origin
+            f = ms.atoms.locate([Locator('iron')]).origin
+            self.assertTrue(np.allclose(o, f))
+
+    def test_alias_at_alias(self):
+        routine_queue = self.slice_routine_queue([0, 2, 3, 11])
+        mss, _ = process_routine_queue(routine_queue)
+        for _, ms in mss.items():
+            print(ms.nodes.locate([Locator('cp_A')]).table)
+            print(ms.nodes.locate([Locator('cp_B')]).table)
+            print(ms.nodes.locate([Locator('cp_A_at_cp_B')]).origin) # TODO
+            exit()
+
+
 
 if __name__ == '__main__':
     unittest.main()

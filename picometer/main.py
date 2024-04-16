@@ -65,9 +65,14 @@ class BaseProcess(metaclass=ProcessRegistrar):
         pass
 
     @property
-    def routine_locator_list(self) -> List[Locator]:
+    def routine_locators_at(self) -> List[Locator]:
         return [Locator.from_dict(from_item)
-                for from_item in self.routine['from']]
+                for from_item in self.routine.get('at', [])]
+
+    @property
+    def routine_locators_from(self) -> List[Locator]:
+        return [Locator.from_dict(from_item)
+                for from_item in self.routine.get('from', [])]
 
 
 class LoadProcess(BaseProcess):
@@ -91,7 +96,7 @@ class AliasProcess(BaseProcess):
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
         alias_label = self.routine[self.keyword]
-        alias_registry[alias_label] = self.routine_locator_list
+        alias_registry[alias_label] = self.routine_locators_from
         return mss, et
 
 
@@ -101,7 +106,7 @@ class CentroidProcess(BaseProcess):
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
         centroid_label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
-            focus = ms.nodes.locate(self.routine_locator_list)
+            focus = ms.nodes.locate(self.routine_locators_from)
             c_fract = focus.fractionalise(focus.centroid)
             c_atoms = {'label': [centroid_label], 'fract_x': [c_fract[0]],
                        'fract_y': [c_fract[1]], 'fract_z': [c_fract[2]], }
@@ -114,10 +119,11 @@ class LineProcess(BaseProcess):
     keyword = 'line'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        line_label = self.routine[self.keyword]
+        label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
-            focus = ms.nodes.locate(self.routine_locator_list)
-            ms.shapes[line_label] = focus.line
+            focus = ms.nodes.locate(self.routine_locators_from)
+            at = ms.nodes.locate(self.routine_locators_at)
+            ms.shapes[label] = focus.line.at(at.origin) if at else focus.line
         return mss, et
 
 
@@ -125,10 +131,11 @@ class PlaneProcess(BaseProcess):
     keyword = 'plane'
 
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        plane_label = self.routine[self.keyword]
+        label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
-            focus = ms.nodes.locate(self.routine_locator_list)
-            ms.shapes[plane_label] = focus.plane
+            focus = ms.nodes.locate(self.routine_locators_from)
+            at = ms.nodes.locate(self.routine_locators_at)
+            ms.shapes[label] = focus.plane.at(at.origin) if at else focus.plane
         return mss, et
 
 

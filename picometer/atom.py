@@ -14,11 +14,15 @@ from picometer.utility import ustr2float
 class Locator(NamedTuple):
     label: str
     symm: str = 'x,y,z'
+    at: 'Locator' = None
 
     @classmethod
     def from_dict(cls, d: dict) -> 'Locator':
         symm = d.get('symm')
-        return Locator(label=d['label'], symm=symm if symm else 'x,y,z')
+        at = d.get('at')
+        return Locator(label=d['label'],
+                       symm=symm if symm else 'x,y,z',
+                       at=at if at else None)
 
 
 alias_registry: Dict[str, List[Locator]] = {}
@@ -37,7 +41,7 @@ class AtomSet(Shape):
         self.table = table
 
     def __len__(self):
-        return len(self.table.index)
+        return len(self.table) if self.table is not None else 0
 
     def __add__(self, other):
         if not (self.base or self.table):
@@ -88,23 +92,21 @@ class AtomSet(Shape):
         """Multiply 3xN vector by crystallographic matrix to get Cart. coord"""
         return self.base.A_d.T @ fract_xyz
 
-    def at(self, origin: Vector3) -> 'AtomSet':
-        """Return a copy of self with centroid at new origin"""
-        new = copy.deepcopy(self)
-        new.origin = origin
-        return new
-
     def locate(self, locators: Sequence[Locator]) -> 'AtomSet':
         """Convenience method to select multiple fragments from locators
         while interpreting and extending aliases if necessary"""
         new = AtomSet()
         assert len(locators) == 0 or isinstance(locators[0], Locator)
-        for label, symm_op_code in locators:
+        for label, symm_op_code, at in locators:
             if label in alias_registry:
                 new2 = self.locate(locators=alias_registry[label])
             else:
                 new2 = self.select_atom(label_regex=label)
-            new += new2.transform(symm_op_code)
+            new2 = new2.transform(symm_op_code)
+            if at:
+                print(self.table)
+                new2.origin = self.locate(at).origin
+            new += new2
         return new
 
     def select_atom(self, label_regex: str) -> 'AtomSet':
@@ -157,4 +159,4 @@ class AtomSet(Shape):
         self.table['fract_x'] += delta[0]
         self.table['fract_y'] += delta[1]
         self.table['fract_z'] += delta[2]
-        assert new_origin_fract == self.centroid
+        assert np.allclose(new_origin_fract, self.centroid)
