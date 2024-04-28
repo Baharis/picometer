@@ -71,26 +71,79 @@ at:
 alias: cp_B_at_cp_A
 from:
   - label: cp_B
-    at: cp_A
+at:
+  - label: cp_A
 ---
 # 12
-plane: cp_common_plane_at_A
+plane: cp_A_plane
+from:
+  - label: cp_A
+---
+# 13
+plane: cp_B_plane
+from:
+  - label: cp_B
+---
+# 14
+distance: cpA_to_cpB_plane_distance
+from:
+  - label: cp_A_plane
+  - label: cp_B_plane
+---
+# 15
+plane: 001_plane
+from:
+  - label: iron
+  - label: iron
+    symm: x+1,y,z
+  - label: iron
+    symm: x,y+1,z
+---
+# 16
+line: 100_direction
+from:
+  - label: iron
+    symm: x,y,z+1
+  - label: iron
+    symm: x+1,y,z+1
+---
+# 17
+distance: 100_direction_to_001_plane
+from:
+  - label: 001_plane
+  - label: 100_direction
+---
+# 18
+line: 010_direction
+from:
+  - label: iron
+    symm: x,y,z
+  - label: iron
+    symm: x,y+1,z
+---
+# 19
+distance: 100_direction_to_010_direction
+from:
+  - label: 100_direction
+  - label: 010_direction
+---
+# 20
+distance: cp_A_cp_A_plane_offset
+from:
+  - label: cp_A
+  - label: cp_A_plane
+---
+# 21
+distance: cp_A_ferrocene_axis_offset
+from:
+  - label: cp_A
+  - label: ferrocene_axis
+---
+# 22
+distance: cp_A_cp_B_offset
 from:
   - label: cp_A
   - label: cp_B
-    at: cp_A_centroid
----
-# Instead of selecting and fitting shape each time, you can 'copy' existing one
-plane: benzene_common_plane_at_B
-copy: benzene_common_plane_at_A
-at: benzene_B_centroid
----
-# Use keyword 'distance' to calculate distance between two selected objects
-distance: C1-C6
-from:
-  - label: C1
-  - label: C2
-    symm: -x,y,-z
 ---
 # 'distance' can be measured between any objects, including centroids & shapes
 distance: benzene_to_benzene_total

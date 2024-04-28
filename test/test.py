@@ -130,11 +130,61 @@ class TestProcedures(unittest.TestCase):
         routine_queue = self.slice_routine_queue([0, 2, 3, 11])
         mss, _ = process_routine_queue(routine_queue)
         for _, ms in mss.items():
-            print(ms.nodes.locate([Locator('cp_A')]).table)
-            print(ms.nodes.locate([Locator('cp_B')]).table)
-            print(ms.nodes.locate([Locator('cp_A_at_cp_B')]).origin) # TODO
-            exit()
+            o_a = ms.nodes.locate([Locator('cp_A')]).origin
+            o_ba = ms.nodes.locate([Locator('cp_B_at_cp_A')]).origin
+            self.assertTrue(np.allclose(o_a, o_ba))
+            pd_b = ms.nodes.locate([Locator('cp_B')]).plane.direction
+            pd_ba = ms.nodes.locate([Locator('cp_B_at_cp_A')]).plane.direction
+            pd_ba = pd_ba if pd_ba[0] * pd_b[0] >= 0 else -pd_ba
+            self.assertTrue(np.allclose(pd_b, pd_ba))
 
+    def test_distance_plane_plane(self):
+        routine_queue = self.slice_routine_queue([0, 2, 3, 11, 12, 13, 14])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['cpA_to_cpB_plane_distance'].to_numpy()
+        correct = np.array([3.2864663644815, 3.2769672330907, 3.288974081930,
+                            3.2875174042662, 3.2735236841099, 3.292997025065])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_distance_line_plane(self):
+        routine_queue = self.slice_routine_queue([0, 1, 15, 16, 17])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['100_direction_to_001_plane'].to_numpy()
+        correct = np.array([4.99475809, 5.07262443, 4.99475809,
+                            5.07262443, 4.99475809, 5.07262443])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_distance_line_line(self):
+        routine_queue = self.slice_routine_queue([0, 1, 16, 18, 19])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['100_direction_to_010_direction'].to_numpy()
+        correct = np.array([4.99475809, 5.07262443, 4.99475809,
+                            5.07262443, 4.99475809, 5.07262443])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_distance_nodes_plane(self):
+        routine_queue = self.slice_routine_queue([0, 2, 6, 20])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['cp_A_cp_A_plane_offset'].to_numpy()
+        correct = np.array([6.99964271e-05, 8.36653335e-06, 1.33526154e-03,
+                            1.21160264e-03, 5.96725130e-03, 6.65771648e-03])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_distance_nodes_line(self):
+        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 21])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['cp_A_ferrocene_axis_offset'].to_numpy()
+        correct = np.array([1.39227974, 1.40885241, 1.23443585,
+                            1.21138738, 1.19594416, 1.15219622])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_distance_nodes_nodes(self):
+        routine_queue = self.slice_routine_queue([0, 2, 3, 22])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['cp_A_cp_B_offset'].to_numpy()
+        correct = np.array([3.35281183, 3.34790063, 3.25804871,
+                            3.23411241, 3.15891163, 3.21732243])
+        self.assertTrue(np.allclose(results, correct))
 
 
 if __name__ == '__main__':

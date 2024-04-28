@@ -1,10 +1,10 @@
-import copy
 from copy import deepcopy
 from typing import Dict, NamedTuple, List, Sequence
 
 import hikari.symmetry
 from hikari.dataframes import BaseFrame, CifFrame
 import numpy as np
+from numpy.linalg import norm
 import pandas as pd
 
 from picometer.shapes import Shape, Line, Plane, Vector3
@@ -14,7 +14,7 @@ from picometer.utility import ustr2float
 class Locator(NamedTuple):
     label: str
     symm: str = 'x,y,z'
-    at: 'Locator' = None
+    at: 'Sequence[Locator]' = None
 
     @classmethod
     def from_dict(cls, d: dict) -> 'Locator':
@@ -104,13 +104,14 @@ class AtomSet(Shape):
                 new2 = self.select_atom(label_regex=label)
             new2 = new2.transform(symm_op_code)
             if at:
-                print(self.table)
                 new2.origin = self.locate(at).origin
             new += new2
         return new
 
     def select_atom(self, label_regex: str) -> 'AtomSet':
-        mask = self.table.index.str.match(label_regex)
+        mask = self.table.index == label_regex
+        if not any(mask):
+            mask = self.table.index.str.match(label_regex)
         return self.__class__(self.base, deepcopy(self.table[mask]))
 
     def transform(self, symm_op_code: str) -> 'AtomSet':
@@ -155,8 +156,25 @@ class AtomSet(Shape):
     def origin(self, new_origin):
         """Change origin to the new one provided in cartesian coordinates"""
         new_origin_fract = self.fractionalise(new_origin)
-        delta = new_origin_fract - self.centroid
+        delta = new_origin_fract - self.fractionalise(self.centroid)
         self.table['fract_x'] += delta[0]
         self.table['fract_y'] += delta[1]
         self.table['fract_z'] += delta[2]
-        assert np.allclose(new_origin_fract, self.centroid)
+        assert np.allclose(new_origin, self.centroid)
+
+    def _distance(self, other: 'Shape') -> float:
+        if other.kind is self.Kind.spatial:
+            # https://stackoverflow.com/a/43359192/8279065 bloody brilliant
+            other: 'AtomSet'
+            xy1, xy2 = self.cart_xyz.T, other.cart_xyz.T
+            p = np.add.outer(np.sum(xy1**2, axis=1), np.sum(xy2**2, axis=1))
+            n = np.dot(xy1, xy2.T)
+            return np.min(np.sqrt(p - 2 * n))
+        elif other.kind is self.Kind.planar:
+            deltas = self.cart_xyz.T - other.origin
+            return min(np.abs(np.dot(deltas, other.direction)))
+        else:  # if other.kind is self.Kind.axial:
+            deltas = self.cart_xyz.T - other.origin
+            norms = norm(deltas, axis=1)
+            along = np.abs(np.dot(deltas, other.direction))
+            return min(norms ** 2 - along ** 2)

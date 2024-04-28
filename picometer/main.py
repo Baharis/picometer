@@ -69,9 +69,15 @@ class BaseProcess(metaclass=ProcessRegistrar):
         return [Locator.from_dict(from_item)
                 for from_item in self.routine.get('at', [])]
 
+    # @property
+    # def routine_locators_from(self) -> List[Locator]:
+    #     return [Locator.from_dict(from_item)
+    #             for from_item in self.routine.get('from', [])]
+
     @property
     def routine_locators_from(self) -> List[Locator]:
-        return [Locator.from_dict(from_item)
+        at_locators = self.routine_locators_at
+        return [Locator.from_dict({'at': at_locators, **from_item})
                 for from_item in self.routine.get('from', [])]
 
 
@@ -122,8 +128,7 @@ class LineProcess(BaseProcess):
         label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
             focus = ms.nodes.locate(self.routine_locators_from)
-            at = ms.nodes.locate(self.routine_locators_at)
-            ms.shapes[label] = focus.line.at(at.origin) if at else focus.line
+            ms.shapes[label] = focus.line
         return mss, et
 
 
@@ -134,8 +139,7 @@ class PlaneProcess(BaseProcess):
         label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
             focus = ms.nodes.locate(self.routine_locators_from)
-            at = ms.nodes.locate(self.routine_locators_at)
-            ms.shapes[label] = focus.plane.at(at.origin) if at else focus.plane
+            ms.shapes[label] = focus.plane
         return mss, et
 
 
@@ -147,13 +151,13 @@ class DistanceProcess(BaseProcess):
         for ms_key, ms in mss.items():
             shapes: List[Shape] = []
             for from_item in self.routine['from']:
-                if shape_label := from_item['label'] in ms.shapes:
+                if (shape_label := from_item['label']) in ms.shapes:
                     shapes.append(ms.shapes[shape_label])
                 else:
                     loc = Locator.from_dict(from_item)
                     shapes.append(ms.nodes.locate([loc]))
             assert len(shapes) == 2
-            et[ms_key, dist_label] = shapes[0].distance(shapes[1])
+            et.loc[ms_key, dist_label] = shapes[0].distance(shapes[1])
         return mss, et
 
 
