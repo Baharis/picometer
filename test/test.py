@@ -1,8 +1,10 @@
+import csv
 from pathlib import Path
 from typing import Iterable
 import unittest
 
 import numpy as np
+import pandas as pd
 
 from picometer.atom import alias_registry, Locator
 from picometer.parser import parse, parse_path
@@ -111,7 +113,7 @@ class TestProcedures(unittest.TestCase):
             self.assertTrue(np.allclose(d, correct, atol=0.01))
 
     def test_line_at_symm(self):
-        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 9])
+        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 7])
         mss, _ = process_routine_queue(routine_queue)
         for _, ms in mss.items():
             o = ms.shapes['ferrocene_axis_at_next_cell'].origin
@@ -119,7 +121,7 @@ class TestProcedures(unittest.TestCase):
             self.assertLess(o[0], 10.531)
 
     def test_plane_at_alias(self):
-        routine_queue = self.slice_routine_queue([0, 1, 2, 6, 10])
+        routine_queue = self.slice_routine_queue([0, 1, 2, 6, 8])
         mss, _ = process_routine_queue(routine_queue)
         for _, ms in mss.items():
             o = ms.shapes['cp_A_plane_at_iron'].origin
@@ -127,7 +129,7 @@ class TestProcedures(unittest.TestCase):
             self.assertTrue(np.allclose(o, f))
 
     def test_alias_at_alias(self):
-        routine_queue = self.slice_routine_queue([0, 2, 3, 11])
+        routine_queue = self.slice_routine_queue([0, 2, 3, 9])
         mss, _ = process_routine_queue(routine_queue)
         for _, ms in mss.items():
             o_a = ms.nodes.locate([Locator('cp_A')]).origin
@@ -139,7 +141,7 @@ class TestProcedures(unittest.TestCase):
             self.assertTrue(np.allclose(pd_b, pd_ba))
 
     def test_distance_plane_plane(self):
-        routine_queue = self.slice_routine_queue([0, 2, 3, 11, 12, 13, 14])
+        routine_queue = self.slice_routine_queue([0, 2, 3, 9, 10, 11, 12])
         mss, et = process_routine_queue(routine_queue)
         results = et['cpA_to_cpB_plane_distance'].to_numpy()
         correct = np.array([3.2864663644815, 3.2769672330907, 3.288974081930,
@@ -147,7 +149,7 @@ class TestProcedures(unittest.TestCase):
         self.assertTrue(np.allclose(results, correct))
 
     def test_distance_line_plane(self):
-        routine_queue = self.slice_routine_queue([0, 1, 15, 16, 17])
+        routine_queue = self.slice_routine_queue([0, 1, 13, 14, 15])
         mss, et = process_routine_queue(routine_queue)
         results = et['100_direction_to_001_plane'].to_numpy()
         correct = np.array([4.99475809, 5.07262443, 4.99475809,
@@ -155,7 +157,7 @@ class TestProcedures(unittest.TestCase):
         self.assertTrue(np.allclose(results, correct))
 
     def test_distance_line_line(self):
-        routine_queue = self.slice_routine_queue([0, 1, 16, 18, 19])
+        routine_queue = self.slice_routine_queue([0, 1, 14, 16, 17])
         mss, et = process_routine_queue(routine_queue)
         results = et['100_direction_to_010_direction'].to_numpy()
         correct = np.array([4.99475809, 5.07262443, 4.99475809,
@@ -163,7 +165,7 @@ class TestProcedures(unittest.TestCase):
         self.assertTrue(np.allclose(results, correct))
 
     def test_distance_nodes_plane(self):
-        routine_queue = self.slice_routine_queue([0, 2, 6, 20])
+        routine_queue = self.slice_routine_queue([0, 2, 6, 18])
         mss, et = process_routine_queue(routine_queue)
         results = et['cp_A_cp_A_plane_offset'].to_numpy()
         correct = np.array([6.99964271e-05, 8.36653335e-06, 1.33526154e-03,
@@ -171,7 +173,7 @@ class TestProcedures(unittest.TestCase):
         self.assertTrue(np.allclose(results, correct))
 
     def test_distance_nodes_line(self):
-        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 21])
+        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 19])
         mss, et = process_routine_queue(routine_queue)
         results = et['cp_A_ferrocene_axis_offset'].to_numpy()
         correct = np.array([1.39227974, 1.40885241, 1.23443585,
@@ -179,12 +181,61 @@ class TestProcedures(unittest.TestCase):
         self.assertTrue(np.allclose(results, correct))
 
     def test_distance_nodes_nodes(self):
-        routine_queue = self.slice_routine_queue([0, 2, 3, 22])
+        routine_queue = self.slice_routine_queue([0, 2, 3, 20])
         mss, et = process_routine_queue(routine_queue)
         results = et['cp_A_cp_B_offset'].to_numpy()
         correct = np.array([3.35281183, 3.34790063, 3.25804871,
                             3.23411241, 3.15891163, 3.21732243])
         self.assertTrue(np.allclose(results, correct))
+
+    def test_angle_plane_plane(self):
+        routine_queue = self.slice_routine_queue([0, 1, 2, 6, 13, 21])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['001_plane_cp_A_plane_angle'].to_numpy()
+        correct = np.array([86.37457561, 86.04503476, 85.87846808,
+                            85.57654087, 86.09193950, 86.00968187])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_angle_plane_line(self):
+        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 6, 22])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['cp_A_plane_ferrocene_axis_angle'].to_numpy()
+        correct = np.array([88.83344787, 89.04145467, 89.18254017,
+                            88.99812150, 89.50083634, 89.06814667])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_angle_line_line(self):
+        routine_queue = self.slice_routine_queue([0, 1, 2, 4, 5, 16, 23])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['010_direction_ferrocene_axis_angle'].to_numpy()
+        correct = np.array([44.18189561, 44.06982134, 43.99321263,
+                            43.63394452, 43.31590821, 43.52811746])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_angle_interior_nodes(self):
+        routine_queue = self.slice_routine_queue([0, 24])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['C(11)-C(12)-C(13)'].to_numpy()
+        correct = np.array([107.99651216, 107.98120182, 107.98282958,
+                            108.17779184, 108.12639300, 107.63799568])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_angle_dihedral_nodes(self):
+        routine_queue = self.slice_routine_queue([0, 25])
+        mss, et = process_routine_queue(routine_queue)
+        results = et['C(11)-C(12)-C(13)-C(14)'].to_numpy()
+        correct = np.array([0.03373221, 0.00041385, 0.02161362,
+                            0.11565318, 0.03754215, 0.37636209])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_write(self):
+        routine_queue = self.full_routine_queue
+        _, _ = process_routine_queue(routine_queue)
+        correct_path = Path(__file__).parent / 'ferrocene_correct.csv'
+        results_path = Path(__file__).parent / 'ferrocene_results.csv'
+        correct = pd.read_csv(correct_path)
+        results = pd.read_csv(results_path)
+        self.assertTrue(correct.equals(results))
 
 
 if __name__ == '__main__':

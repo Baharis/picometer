@@ -33,12 +33,13 @@ def versorize(v: Vector3) -> Versor3:
     return (-v if neg else v) / v_norm
 
 
-def degrees_between(v: Vector3, w: Vector3) -> float:
+def degrees_between(v: Vector3, w: Vector3, normalize: bool = False) -> float:
     """Calculate angle between two vectors in degrees"""
     assert v.shape == w.shape
     rad = np.arccos(
         sum(v * w) / (np.sqrt(sum(v * v)) * np.sqrt(sum(w * w))))
-    return min([d := np.rad2deg(rad), 180. - d])
+    deg = np.rad2deg(rad)
+    return 180. - deg if deg > 90. and normalize else deg
 
 
 class Shape:
@@ -61,14 +62,6 @@ class Shape:
         new.origin = np.array(origin, dtype=float)
         return new
 
-    def angle(self, other: 'Shape') -> float:
-        kinds = {self.kind, other.kind}
-        assert self.Kind.spatial not in kinds, 'No angle: directionless'
-        angle_ = degrees_between(self.direction, other.direction)
-        if len(kinds) == 2:
-            angle_ = 90.0 - angle_
-        return angle_
-
     @abc.abstractmethod
     def _distance(self, other: 'Shape') -> float:
         pass
@@ -84,6 +77,18 @@ class Shape:
             return other.distance(self)
         return self._distance(other)  # delegate to concrete implementation
 
+    @abc.abstractmethod
+    def _angle(self, other: 'Shape') -> float:
+        pass
+
+    def angle(self, *others: 'Shape') -> float:
+        """
+        Delegated to a concrete implementation.
+        For Explicit shape, accept two parameters; for AtomSets, any size.
+        """
+        assert all(isinstance(o, Shape) for o in [self, *others])
+        return self._angle(*others)  # delegate to concrete implementation
+
 
 class ExplicitShape(Shape, abc.ABC):
     def __init__(self, direction: Vector3, origin: Vector3 = zero3):
@@ -97,6 +102,12 @@ class ExplicitShape(Shape, abc.ABC):
     @direction.setter
     def direction(self, vector: Vector3) -> None:
         self._direction = versorize(vector)
+
+    def _angle(self, *others: 'Shape') -> float:
+        assert len(others) == 1, 'Handle only angles between 2 ExplicitShapes'
+        other = others[0]
+        deg = degrees_between(self.direction, other.direction, normalize=True)
+        return deg if self.kind is others[0].kind else 90.0 - deg
 
 
 class Line(ExplicitShape):

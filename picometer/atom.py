@@ -7,7 +7,7 @@ import numpy as np
 from numpy.linalg import norm
 import pandas as pd
 
-from picometer.shapes import Shape, Line, Plane, Vector3
+from picometer.shapes import degrees_between, Line, Plane, Shape, Vector3
 from picometer.utility import ustr2float
 
 
@@ -49,6 +49,9 @@ class AtomSet(Shape):
         elif not (other.base or other.table):
             return self
         return AtomSet(self.base, pd.concat([self.table, other.table], axis=0))
+
+    def __getitem__(self, item) -> 'AtomSet':
+        return self.__class__(bf=self.base, table=self.table[item])
 
     @classmethod
     def from_cif(cls, cif_path: str, block_name: str = None) -> 'AtomSet':
@@ -161,6 +164,19 @@ class AtomSet(Shape):
         self.table['fract_y'] += delta[1]
         self.table['fract_z'] += delta[2]
         assert np.allclose(new_origin, self.centroid)
+
+    def _angle(self, *others: 'Shape') -> float:
+        assert all(o.kind is o.Kind.spatial for o in [self, *others])
+        combined = sum(others, self)
+        xyz = combined.cart_xyz.T
+        if len(combined) == 3:  # interior angle
+            return degrees_between(xyz[0] - xyz[1], xyz[2] - xyz[1])
+        elif 4 <= len(combined) <= 6:  # dihedral angle
+            plane1_dir = np.cross(xyz[0] - xyz[1], xyz[2] - xyz[1])
+            plane2_dir = np.cross(xyz[-3] - xyz[-2], xyz[-1] - xyz[-2])
+            return degrees_between(plane1_dir, plane2_dir, normalize=False)
+        else:
+            return 'Input AtomSet must contain between 3 and 6 atoms'
 
     def _distance(self, other: 'Shape') -> float:
         if other.kind is self.Kind.spatial:

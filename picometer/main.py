@@ -112,7 +112,11 @@ class CentroidProcess(BaseProcess):
     def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
         centroid_label = self.routine[self.keyword]
         for ms_key, ms in mss.items():
-            focus = ms.nodes.locate(self.routine_locators_from)
+            try:
+                focus = ms.nodes.locate(self.routine_locators_from)
+            except:
+                print(self.routine_locators_at)
+                raise
             c_fract = focus.fractionalise(focus.centroid)
             c_atoms = {'label': [centroid_label], 'fract_x': [c_fract[0]],
                        'fract_y': [c_fract[1]], 'fract_z': [c_fract[2]], }
@@ -169,20 +173,13 @@ class AngleProcess(BaseProcess):
         for ms_key, ms in mss.items():
             shapes: List[Shape] = []
             for from_item in self.routine['from']:
-                if shape_label := from_item['label'] in ms.shapes:
+                if (shape_label := from_item['label']) in ms.shapes:
                     shapes.append(ms.shapes[shape_label])
                 else:
-                    loc = Locator(from_item['label'], from_item.get('symm'))
+                    loc = Locator.from_dict(from_item)
                     shapes.append(ms.nodes.locate([loc]))
-            if len(shapes) == 2:
-                assert not any(s.kind is Shape.Kind.spatial for s in shapes)
-                et[ms_key, angle_label] = shapes[0].angle(shapes[1])
-            if len(shapes) in {3, 4}:
-                assert all(isinstance(s, AtomSet) for s in shapes)
-                shapes: List[AtomSet]
-                line1 = (shapes[0] + shapes[1]).line
-                line2 = (shapes[-1] + shapes[-2]).line
-                et[ms_key, angle_label] = line1.angle(line2)
+            assert len(shapes)
+            et.loc[ms_key, angle_label] = shapes[0].angle(*shapes[1:])
         return mss, et
 
 

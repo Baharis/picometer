@@ -41,16 +41,6 @@ from:
   - label: cp_A
 ---
 # 7
-centroid: cp_B_centroid
-from:
-  - cp_B
----
-# 8
-plane: cp_B_plane
-from:
-  - cp_B
----
-# 9
 line: ferrocene_axis_at_next_cell
 from:
   - label: cp_A_centroid
@@ -59,7 +49,7 @@ at:
   - label: Fe
     symm: x+1,y,z
 ---
-# 10
+# 8
 plane: cp_A_plane_at_iron
 from:
   - label: cp_B
@@ -67,30 +57,30 @@ at:
   - label: iron
 
 ---
-# 11
+# 9
 alias: cp_B_at_cp_A
 from:
   - label: cp_B
 at:
   - label: cp_A
 ---
-# 12
+# 10
 plane: cp_A_plane
 from:
   - label: cp_A
 ---
-# 13
+# 11
 plane: cp_B_plane
 from:
   - label: cp_B
 ---
-# 14
+# 12
 distance: cpA_to_cpB_plane_distance
 from:
   - label: cp_A_plane
   - label: cp_B_plane
 ---
-# 15
+# 13
 plane: 001_plane
 from:
   - label: iron
@@ -99,7 +89,7 @@ from:
   - label: iron
     symm: x,y+1,z
 ---
-# 16
+# 14
 line: 100_direction
 from:
   - label: iron
@@ -107,13 +97,13 @@ from:
   - label: iron
     symm: x+1,y,z+1
 ---
-# 17
+# 15
 distance: 100_direction_to_001_plane
 from:
   - label: 001_plane
   - label: 100_direction
 ---
-# 18
+# 16
 line: 010_direction
 from:
   - label: iron
@@ -121,53 +111,62 @@ from:
   - label: iron
     symm: x,y+1,z
 ---
-# 19
+# 17
 distance: 100_direction_to_010_direction
 from:
   - label: 100_direction
   - label: 010_direction
 ---
-# 20
+# 18
 distance: cp_A_cp_A_plane_offset
 from:
   - label: cp_A
   - label: cp_A_plane
 ---
-# 21
+# 19
 distance: cp_A_ferrocene_axis_offset
 from:
   - label: cp_A
   - label: ferrocene_axis
 ---
-# 22
+# 20
 distance: cp_A_cp_B_offset
 from:
   - label: cp_A
   - label: cp_B
 ---
-# 'distance' can be measured between any objects, including centroids & shapes
-distance: benzene_to_benzene_total
+# 21
+angle: 001_plane_cp_A_plane_angle
 from:
-  - label: benzene_A_centroid
-  - label: benzene_B_centroid
+  - label: 001_plane
+  - label: cp_A_plane
 ---
-distance: benzene_to_benzene_vertical
+# 22
+angle: cp_A_plane_ferrocene_axis_angle
 from:
-  - label: benzene_common_plane_at_A
-  - label: benzene_common_plane_at_B
+  - label: cp_A_plane
+  - label: ferrocene_axis
 ---
-# Calculate 'angle' between two to four objects, based on their type
-angle: C2-C1-C2
+# 23
+angle: 010_direction_ferrocene_axis_angle
 from:
-  - label: C2
-  - label: C1
-  - label: C2
-    symm: -x,y,-z
+  - label: 010_direction
+  - label: ferrocene_axis
 ---
-angle: benzene_A_B_plane
+# 24
+angle: C(11)-C(12)-C(13)
 from:
-  - label: benzene_A_plane
-  - label: benzene_B_plane
+  - label: C(11)
+  - label: C(12)
+  - label: C(13)
 ---
-# 'write' results of all performed calculations into an excel-readable csv file
-write: /path/to/results.csv
+# 25
+angle: C(11)-C(12)-C(13)-C(14)
+from:
+  - label: C(11)
+  - label: C(12)
+  - label: C(13)
+  - label: C(14)
+---
+# 26
+write: ./ferrocene_results.csv
