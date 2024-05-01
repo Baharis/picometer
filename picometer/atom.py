@@ -73,7 +73,6 @@ class AtomSet(Shape):
                 'fract_y': [ustr2float(v) for v in cb['_atom_site_fract_y']],
                 'fract_z': [ustr2float(v) for v in cb['_atom_site_fract_z']],
             }
-            # print(pd.DataFrame.from_records(atoms_dict).set_index('label'))
             atoms = pd.DataFrame.from_records(atoms_dict).set_index('label')
         except KeyError:
             atoms = pd.DataFrame()
