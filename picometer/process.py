@@ -49,11 +49,6 @@ class BaseProcess(metaclass=ProcessRegistrar):
         return [Locator.from_dict(from_item)
                 for from_item in self.routine.get('at', [])]
 
-    # @property
-    # def routine_locators_from(self) -> List[Locator]:
-    #     return [Locator.from_dict(from_item)
-    #             for from_item in self.routine.get('from', [])]
-
     @property
     def routine_locators_from(self) -> List[Locator]:
         at_locators = self.routine_locators_at
