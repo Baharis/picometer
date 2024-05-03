@@ -1,9 +1,5 @@
-from collections import deque, UserDict
+from collections import UserDict
 
 
 class Routine(UserDict):
-    """A set of individual instructions to be performed in processor"""
-
-
-class RoutineQueue(deque[Routine]):
-    """A queue of individual routines to be performed sequentially"""
+    """A single yaml file containing settings and subsequent instructions"""

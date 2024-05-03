@@ -18,5 +18,5 @@ class ModelState:
         return self.atoms + self.centroids
 
 
-class ModelStates(Dict[Tuple[str, str], ModelState]):
+class ModelStates(Dict[str, ModelState]):
     pass

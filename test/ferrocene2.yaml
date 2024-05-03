@@ -4,13 +4,12 @@ settings:
   select_use_explicit: True
   select_use_regex: True
 instructions:
-  - load:
-    - path: ./ferrocene1.cif
-    - path: ./ferrocene2.cif
-    - path: ./ferrocene3.cif
-    - path: ./ferrocene4.cif
-    - path: ./ferrocene5.cif
-    - path: ./ferrocene6.cif
+  - load: ./ferrocene1.cif
+  - load: ./ferrocene2.cif
+  - load: ./ferrocene3.cif
+  - load: ./ferrocene4.cif
+  - load: ./ferrocene5.cif
+  - load: ./ferrocene6.cif
   - select: Fe
   - alias: iron
   - select: C.+
@@ -26,13 +25,13 @@ instructions:
   - plane: cp_A_plane
   - select: cp_A_centroid
   - select: Fe
-  - translate: {label: Fe, symm: z+1;y;z}
+  - recenter: {label: Fe, symm: z+1;y;z}
   - line: ferrocene_axis_at_next_cell
   - select: cp_B
-  - translate: Fe
+  - recenter: Fe
   - plane: cp_A_plane_at_iron
   - select: cp_B
-  - translate: cp_A
+  - recenter: cp_A
   - alias: cp_B_at_cp_A
   - select: cp_A
   - plane: cp_A_plane

@@ -5,7 +5,7 @@ import pandas as pd
 
 from picometer.atom import alias_registry, AtomSet, Locator
 from picometer.models import ModelState, ModelStates
-from picometer.routine import Routine, RoutineQueue
+from picometer.routine import Routine
 from picometer.shapes import Shape
 
 
@@ -165,7 +165,7 @@ class WriteProcess(BaseProcess):
         return mss, et
 
 
-def process_routine_queue(rq: RoutineQueue) -> ProcessOut:
+def process_routine_queue(rq: List[Routine]) -> ProcessOut:
     mss = ModelStates()
     et = EvaluationTable()
     for routine in rq:
