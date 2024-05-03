@@ -1,174 +1,183 @@
-import abc
-from typing import List, Tuple
+from copy import deepcopy
+from collections import UserDict
+from typing import Callable, Dict, List, Union
 
 import pandas as pd
 
 from picometer.atom import alias_registry, AtomSet, Locator
 from picometer.models import ModelState, ModelStates
 from picometer.routine import Routine
-from picometer.shapes import Shape
+from picometer.settings import default_settings
 
 
-EvaluationTable = pd.DataFrame
-"""Type describing all collected measurements of distanced, angles etc."""
+ImplicitInstructionArgument = Union[str, Dict[str, str]]
 
 
-class ProcessRegistrar(abc.ABCMeta):
-    """Metaclass for processors which registers them under their `keyword`"""
-    REGISTRY = {}
-
-    def __new__(mcs, name, bases, attrs):
-        new_cls = type.__new__(mcs, name, bases, attrs)
-        if hasattr(new_cls, 'keyword') and new_cls.keyword:
-            mcs.REGISTRY[new_cls.keyword] = new_cls
-        return new_cls
-
-
-ProcessOut = Tuple[ModelStates, EvaluationTable]
-
-
-class BaseProcess(metaclass=ProcessRegistrar):
-    """Base class for every processor"""
-
-    def __init__(self, routine: Routine) -> None:
-        self.routine = routine
-
-    @classmethod
-    def from_routine(cls, routine: Routine) -> 'BaseProcess':
-        registered_processes = ProcessRegistrar.REGISTRY.keys()
-        for registered_process in registered_processes:
-            if registered_process in routine.keys():
-                return ProcessRegistrar.REGISTRY[registered_process](routine)
-
-    @abc.abstractmethod
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        pass
-
-    @property
-    def routine_locators_at(self) -> List[Locator]:
-        return [Locator.from_dict(from_item)
-                for from_item in self.routine.get('at', [])]
-
-    @property
-    def routine_locators_from(self) -> List[Locator]:
-        at_locators = self.routine_locators_at
-        return [Locator.from_dict({'at': at_locators, **from_item})
-                for from_item in self.routine.get('from', [])]
+def explicit_kwargs(**expected_kwargs: type) -> type:
+    class ExplicitInstructionArgs(UserDict):
+        def __init__(self, arg):
+            new = {}
+            if isinstance(arg, dict):
+                for key, value in arg.items():
+                    assert key in expected_kwargs.keys(), f'Unknown key: {key}'
+                    new[key] = expected_kwargs[key](value)
+            else:
+                expected_key, expected_type = list(expected_kwargs.items())[0]
+                new[expected_key] = expected_type(arg)
+            for expected_key in expected_kwargs.keys():
+                if expected_key not in new.keys():
+                    new[expected_key] = None
+            super().__init__(**new)
+    return ExplicitInstructionArgs
 
 
-class LoadProcess(BaseProcess):
-    """Load crystal data from input cif file to a `ModelState`"""
-    keyword = 'load'
-
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        model_states: ModelStates = {}
-        for cif_block_address in self.routine['load']:
-            cif_path = cif_block_address['path']
-            block_name = cif_block_address.get('block')
-            atoms = AtomSet.from_cif(cif_path=cif_path, block_name=block_name)
-            label = cif_path + (':' + block_name if block_name else '')
-            model_states[label] = ModelState(atoms=atoms)
-        return model_states, et
+CifInstructionsDict = explicit_kwargs(path=str, block=str)
+LocatorInstructionsDict = explicit_kwargs(label=str, symm=str, at=Locator)
 
 
-class AliasProcess(BaseProcess):
-    keyword = 'alias'
-
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        alias_label = self.routine[self.keyword]
-        alias_registry[alias_label] = self.routine_locators_from
-        return mss, et
+Instruction: Dict
 
 
-class CentroidProcess(BaseProcess):
-    keyword = 'centroid'
+def registers_instructions(cls):
+    """Class decorator that registers class methods in `cls.instructions`"""
+    cls.instructions = {}
+    for method_name in dir(cls):
+        method = getattr(cls, method_name)
+        if hasattr(method, '_name'):
+            name = getattr(method, '_name')
+            cls.instructions.update({name: method})
+    return cls
 
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        centroid_label = self.routine[self.keyword]
-        for ms_key, ms in mss.items():
-            try:
-                focus = ms.nodes.locate(self.routine_locators_from)
-            except:
-                print(self.routine_locators_at)
-                raise
+
+def register_instruction(name: str) -> Callable:
+    """Method decorator that registers this method in `cls.instructions`"""
+    def decorator(processor_method: Callable) -> Callable:
+        processor_method._name = name
+        return processor_method
+    return decorator
+
+
+@registers_instructions
+class Processor:
+    """
+    This is the main class responsible for controlling, processing,
+    storing current state, importing, exporting the current state
+    of work performed in picometer.
+    """
+    instructions: Dict[str, Callable] = {}
+
+    def __init__(self, settings: Dict) -> None:
+        self.evaluation_table = pd.DataFrame()
+        self.model_states: ModelStates = {}
+        self.selection: List[Locator] = []
+        self.settings = dict(default_settings, **settings)
+
+    def process(self, instruction: Dict):
+        assert len(instruction) == 1, 'Only singular instructions are accepted'
+        instruction_name = list(instruction.keys())[0]
+        instruction_argument = list(instruction.values())[0]
+        self.instructions[instruction_name](self, instruction_argument)
+
+    def select_auto_clear(self) -> None:
+        if self.settings.get('select_auto_clears'):
+            self.selection = []
+
+    @register_instruction('load')
+    def load(self, arg: ImplicitInstructionArgument) -> None:
+        arg = CifInstructionsDict(arg)
+        cif_path = arg['path']
+        block_name = arg['block']
+        atoms = AtomSet.from_cif(cif_path=cif_path, block_name=block_name)
+        label = cif_path + (':' + block_name if block_name else '')
+        self.model_states[label] = ModelState(atoms=atoms)
+
+    @register_instruction('select')
+    def select(self, arg: ImplicitInstructionArgument) -> None:
+        arg = LocatorInstructionsDict(arg)
+        self.selection.append(Locator.from_dict(arg))
+
+    @register_instruction('recenter')
+    def recenter(self, arg: ImplicitInstructionArgument) -> None:
+        arg = LocatorInstructionsDict(arg)
+        new_center = [Locator.from_dict(arg)]
+        new_locators = [Locator.from_dict(dict(loc._asdict(), at=new_center))
+                        for loc in self.selection]
+        self.selection = new_locators
+
+    @register_instruction('alias')
+    def alias(self, label: str) -> None:
+        alias_registry[label] = deepcopy(self.selection)
+        self.select_auto_clear()
+
+    @register_instruction('centroid')
+    def centroid(self, label: str) -> None:
+        for ms_key, ms in self.model_states.items():
+            focus = ms.nodes.locate(self.selection)
             c_fract = focus.fractionalise(focus.centroid)
-            c_atoms = {'label': [centroid_label], 'fract_x': [c_fract[0]],
+            c_atoms = {'label': [label], 'fract_x': [c_fract[0]],
                        'fract_y': [c_fract[1]], 'fract_z': [c_fract[2]], }
             atoms = pd.DataFrame.from_records(c_atoms).set_index('label')
             ms.centroids += AtomSet(focus.base, atoms)
-        return mss, et
+        self.select_auto_clear()
 
-
-class LineProcess(BaseProcess):
-    keyword = 'line'
-
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        label = self.routine[self.keyword]
-        for ms_key, ms in mss.items():
-            focus = ms.nodes.locate(self.routine_locators_from)
+    @register_instruction('line')
+    def line(self, label: str) -> None:
+        for ms_key, ms in self.model_states.items():
+            focus = ms.nodes.locate(self.selection)
             ms.shapes[label] = focus.line
-        return mss, et
+        self.select_auto_clear()
 
-
-class PlaneProcess(BaseProcess):
-    keyword = 'plane'
-
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        label = self.routine[self.keyword]
-        for ms_key, ms in mss.items():
-            focus = ms.nodes.locate(self.routine_locators_from)
+    @register_instruction('plane')
+    def plane(self, label: str) -> None:
+        for ms_key, ms in self.model_states.items():
+            focus = ms.nodes.locate(self.selection)
             ms.shapes[label] = focus.plane
-        return mss, et
+        self.select_auto_clear()
 
-
-class DistanceProcess(BaseProcess):
-    keyword = 'distance'
-
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        dist_label = self.routine[self.keyword]
-        for ms_key, ms in mss.items():
-            shapes: List[Shape] = []
-            for from_item in self.routine['from']:
-                if (shape_label := from_item['label']) in ms.shapes:
+    @register_instruction('distance')
+    def distance(self, label: str) -> None:
+        for ms_key, ms in self.model_states.items():
+            shapes = []
+            for locator in self.selection:
+                if (shape_label := locator.label) in ms.shapes:
                     shapes.append(ms.shapes[shape_label])
                 else:
-                    loc = Locator.from_dict(from_item)
-                    shapes.append(ms.nodes.locate([loc]))
+                    shapes.append(ms.nodes.locate([locator]))
             assert len(shapes) == 2
-            et.loc[ms_key, dist_label] = shapes[0].distance(shapes[1])
-        return mss, et
+            distance = shapes[0].distance(shapes[1])
+            self.evaluation_table.loc[ms_key, label] = distance
+        self.select_auto_clear()
 
-
-class AngleProcess(BaseProcess):
-    keyword = 'angle'
-
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        angle_label = self.routine[self.keyword]
-        for ms_key, ms in mss.items():
-            shapes: List[Shape] = []
-            for from_item in self.routine['from']:
-                if (shape_label := from_item['label']) in ms.shapes:
+    @register_instruction('angle')
+    def angle(self, label: str) -> None:
+        for ms_key, ms in self.model_states.items():
+            shapes = []
+            for locator in self.selection:
+                if (shape_label := locator.label) in ms.shapes:
                     shapes.append(ms.shapes[shape_label])
                 else:
-                    loc = Locator.from_dict(from_item)
-                    shapes.append(ms.nodes.locate([loc]))
+                    shapes.append(ms.nodes.locate([locator]))
             assert len(shapes)
-            et.loc[ms_key, angle_label] = shapes[0].angle(*shapes[1:])
-        return mss, et
+            angle = shapes[0].angle(*shapes[1:])
+            self.evaluation_table.loc[ms_key, label] = angle
+        self.select_auto_clear()
+
+    @register_instruction('write')
+    def write(self, csv_name: str) -> None:
+        self.evaluation_table.to_csv(path_or_buf=csv_name)
 
 
-class WriteProcess(BaseProcess):
-    keyword = 'write'
+def process(routine: Routine):
+    settings = routine.get('settings', {})
+    processor = Processor(settings)
+    instructions = routine.get('instructions', [])
+    for instruction in instructions:
+        processor.process(instruction)
+    return processor
 
-    def __call__(self, mss: ModelStates, et: EvaluationTable) -> ProcessOut:
-        et.to_csv(path_or_buf=self.routine['write'])
-        return mss, et
 
-
-def process_routine_queue(rq: List[Routine]) -> ProcessOut:
-    mss = ModelStates()
-    et = EvaluationTable()
-    for routine in rq:
-        process = BaseProcess.from_routine(routine)
-        mss, et = process(mss, et)
-    return mss, et
+if __name__ == '__main__':
+    p = Processor()
+    print(p.instructions)
+    print(p.instructions['load'])
+    print(p.instructions['load'](p, {'block': '123'}))

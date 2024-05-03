@@ -1,10 +1,10 @@
-from picometer.process import process_routine_queue
+from picometer.process import process
 
 
 def main():
     from picometer.parser import parse_path
-    routine_queue = parse_path('../example.yaml')
-    process_routine_queue(routine_queue)
+    routine = parse_path('../example.yaml')
+    process(routine)
 
 
 if __name__ == '__main__':
