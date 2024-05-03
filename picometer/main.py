@@ -1,4 +1,4 @@
-from process import process_routine_queue
+from picometer.process import process_routine_queue
 
 
 def main():
