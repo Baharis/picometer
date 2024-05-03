@@ -7,6 +7,7 @@ import pandas as pd
 from picometer.atom import alias_registry, AtomSet, Locator
 from picometer.models import ModelState, ModelStates
 from picometer.routine import Routine
+from picometer.settings import default_settings
 
 
 ImplicitInstructionArgument = Union[str, Dict[str, str]]
@@ -69,7 +70,7 @@ class Processor:
         self.evaluation_table = pd.DataFrame()
         self.model_states: ModelStates = {}
         self.selection: List[Locator] = []
-        self.settings = settings
+        self.settings = dict(default_settings, **settings)
 
     def process(self, instruction: Dict):
         assert len(instruction) == 1, 'Only singular instructions are accepted'
@@ -98,9 +99,10 @@ class Processor:
     @register_instruction('recenter')
     def recenter(self, arg: ImplicitInstructionArgument) -> None:
         arg = LocatorInstructionsDict(arg)
-        new_center = Locator.from_dict(arg)
-        for locator in self.selection:
-            locator.at = new_center
+        new_center = [Locator.from_dict(arg)]
+        new_locators = [Locator.from_dict(dict(loc._asdict(), at=new_center))
+                        for loc in self.selection]
+        self.selection = new_locators
 
     @register_instruction('alias')
     def alias(self, label: str) -> None:
@@ -137,11 +139,10 @@ class Processor:
         for ms_key, ms in self.model_states.items():
             shapes = []
             for locator in self.selection:
-                if (shape_label := locator['label']) in ms.shapes:
+                if (shape_label := locator.label) in ms.shapes:
                     shapes.append(ms.shapes[shape_label])
                 else:
-                    loc = Locator.from_dict(locator)
-                    shapes.append(ms.nodes.locate([loc]))
+                    shapes.append(ms.nodes.locate([locator]))
             assert len(shapes) == 2
             distance = shapes[0].distance(shapes[1])
             self.evaluation_table.loc[ms_key, label] = distance
@@ -152,11 +153,10 @@ class Processor:
         for ms_key, ms in self.model_states.items():
             shapes = []
             for locator in self.selection:
-                if (shape_label := locator['label']) in ms.shapes:
+                if (shape_label := locator.label) in ms.shapes:
                     shapes.append(ms.shapes[shape_label])
                 else:
-                    loc = Locator.from_dict(locator)
-                    shapes.append(ms.nodes.locate([loc]))
+                    shapes.append(ms.nodes.locate([locator]))
             assert len(shapes)
             angle = shapes[0].angle(*shapes[1:])
             self.evaluation_table.loc[ms_key, label] = angle
@@ -170,9 +170,10 @@ class Processor:
 def process(routine: Routine):
     settings = routine.get('settings', {})
     processor = Processor(settings)
-    instructions = Routine.get('instructions', [])
+    instructions = routine.get('instructions', [])
     for instruction in instructions:
         processor.process(instruction)
+    return processor
 
 
 if __name__ == '__main__':

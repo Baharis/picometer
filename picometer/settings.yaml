@@ -1,0 +1,4 @@
+select_aggregates: True
+select_auto_clears: True
+select_use_explicit: True
+select_use_regex: True

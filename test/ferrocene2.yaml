@@ -28,7 +28,7 @@ instructions:
   - recenter: {label: Fe, symm: z+1;y;z}
   - line: ferrocene_axis_at_next_cell
   - select: cp_B
-  - recenter: Fe
+  - recenter: iron
   - plane: cp_A_plane_at_iron
   - select: cp_B
   - recenter: cp_A
@@ -51,7 +51,7 @@ instructions:
   - select: 100_direction
   - distance: 100_direction_to_001_plane
   - select: Fe
-  - select: {label: Fe, symm: x,y+1,z}
+  - select: {label: Fe, symm: x;y+1;z}
   - line: 010_direction
   - select: 100_direction
   - select: 010_direction
