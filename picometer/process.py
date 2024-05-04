@@ -4,7 +4,7 @@ from typing import Callable, Dict, List, Union
 
 import pandas as pd
 
-from picometer.atom import alias_registry, AtomSet, Locator
+from picometer.atom import group_registry, AtomSet, Locator
 from picometer.models import ModelState, ModelStates
 from picometer.routine import Routine
 from picometer.settings import default_settings
@@ -104,9 +104,9 @@ class Processor:
                         for loc in self.selection]
         self.selection = new_locators
 
-    @register_instruction('alias')
-    def alias(self, label: str) -> None:
-        alias_registry[label] = deepcopy(self.selection)
+    @register_instruction('group')
+    def group(self, label: str) -> None:
+        group_registry[label] = deepcopy(self.selection)
         self.select_auto_clear()
 
     @register_instruction('centroid')

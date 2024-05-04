@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from picometer.atom import alias_registry, Locator
+from picometer.atom import group_registry, Locator
 from picometer.parser import parse, parse_path
 from picometer.process import process
 
@@ -52,34 +52,34 @@ class TestSettingInstructions(unittest.TestCase):
         for _, ms in p.model_states.items():
             self.assertEqual(ms.atoms.table.loc['Fe', 'fract_x'], 0.0)
 
-    def test_make_alias(self) -> None:
+    def test_make_group(self) -> None:
         self.routine_text += '  - select: Fe\n'
-        self.routine_text += '  - alias: iron'
+        self.routine_text += '  - group: iron'
         _ = process(parse(self.routine_text)[0])
-        self.assertEqual(alias_registry['iron'], [Locator('Fe')])
+        self.assertEqual(group_registry['iron'], [Locator('Fe')])
 
-    def test_access_alias(self) -> None:
+    def test_access_group(self) -> None:
         self.routine_text += '  - select: Fe\n'
-        self.routine_text += '  - alias: iron'
+        self.routine_text += '  - group: iron'
         p = process(parse(self.routine_text)[0])
         for _, ms in p.model_states.items():
             self.assertEqual(ms.atoms.locate([Locator('Fe')]).table.index,
                              ms.atoms.locate([Locator('iron')]).table.index)
 
-    def test_regex_alias(self):
+    def test_regex_group(self):
         self.routine_text += '  - select: C.+\n'
-        self.routine_text += '  - alias: cp_A'
+        self.routine_text += '  - group: cp_A'
         p = process(parse(self.routine_text)[0])
         carbon_counts = [5, 5, 10, 10, 15, 15]
         for (_, ms), cc in zip(p.model_states.items(), carbon_counts):
             carbons = ms.atoms.locate([Locator('cp_A')]).table
             self.assertEqual(len(carbons), cc)
 
-    def test_transformed_alias(self):
+    def test_transformed_group(self):
         self.routine_text += '  - select: C.+\n'
-        self.routine_text += '  - alias: cp_A\n'
+        self.routine_text += '  - group: cp_A\n'
         self.routine_text += '  - select: {label: cp_A, symm: -x;-y;-z}\n'
-        self.routine_text += '  - alias: cp_B'
+        self.routine_text += '  - group: cp_B'
         p = process(parse(self.routine_text)[0])
         for _, ms in p.model_states.items():
             carbons_a = ms.atoms.locate([Locator('cp_A')]).table
@@ -135,9 +135,9 @@ class TestSettingInstructions(unittest.TestCase):
             self.assertGreater(o[0], 10.442)
             self.assertLess(o[0], 10.531)
 
-    def test_plane_at_alias(self):
+    def test_plane_at_group(self):
         self.routine_text += '  - select: Fe\n'
-        self.routine_text += '  - alias: iron\n'
+        self.routine_text += '  - group: iron\n'
         self.routine_text += '  - select: {label: C.+, symm: -x;-y;-z}\n'
         self.routine_text += '  - recenter: iron\n'
         self.routine_text += '  - plane: cp_A_plane_at_iron'
@@ -147,14 +147,14 @@ class TestSettingInstructions(unittest.TestCase):
             f = ms.atoms.locate([Locator('iron')]).origin
             self.assertTrue(np.allclose(o, f))
 
-    def test_alias_at_alias(self):
+    def test_group_at_group(self):
         self.routine_text += '  - select: C.+\n'
-        self.routine_text += '  - alias: cp_A\n'
+        self.routine_text += '  - group: cp_A\n'
         self.routine_text += '  - select: {label: cp_A, symm: -x;-y;-z}\n'
-        self.routine_text += '  - alias: cp_B\n'
+        self.routine_text += '  - group: cp_B\n'
         self.routine_text += '  - select: cp_B\n'
         self.routine_text += '  - recenter: cp_A\n'
-        self.routine_text += '  - alias: cp_B_at_cp_A'
+        self.routine_text += '  - group: cp_B_at_cp_A'
         p = process(parse(self.routine_text)[0])
         for _, ms in p.model_states.items():
             o_a = ms.nodes.locate([Locator('cp_A')]).origin
@@ -176,13 +176,13 @@ class TestMeasuringInstructions(unittest.TestCase):
       - load: ./ferrocene5.cif
       - load: ./ferrocene6.cif
       - select: C.+
-      - alias: cp_A
+      - group: cp_A
       - select: cp_A
       - centroid: cp_A_centroid
       - select: cp_A
       - plane: cp_A_plane
       - select: {label: cp_A, symm: -x;-y;-z}
-      - alias: cp_B
+      - group: cp_B
       - select: cp_B
       - plane: cp_B_plane
       - select: {label: Fe, symm: x;y;z+1}

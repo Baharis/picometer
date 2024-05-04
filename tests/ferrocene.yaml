@@ -1,8 +1,5 @@
 settings:
-  select_aggregates: True
   select_auto_clears: True
-  select_use_explicit: True
-  select_use_regex: True
 instructions:
   - load: ./ferrocene1.cif
   - load: ./ferrocene2.cif
@@ -11,11 +8,11 @@ instructions:
   - load: ./ferrocene5.cif
   - load: ./ferrocene6.cif
   - select: Fe
-  - alias: iron
+  - group: iron
   - select: C.+
-  - alias: cp_A
+  - group: cp_A
   - select: {label: cp_A, symm: -x;-y;-z}
-  - alias: cp_B
+  - group: cp_B
   - select: cp_A
   - centroid: cp_A_centroid
   - select: cp_A_centroid
@@ -32,7 +29,7 @@ instructions:
   - plane: cp_A_plane_at_iron
   - select: cp_B
   - recenter: cp_A
-  - alias: cp_B_at_cp_A
+  - group: cp_B_at_cp_A
   - select: cp_A
   - plane: cp_A_plane
   - select: cp_B

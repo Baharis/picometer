@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict
 from picometer.atom import AtomSet
 from picometer.shapes import ExplicitShape
 

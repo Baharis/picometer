@@ -29,7 +29,7 @@ class Locator(NamedTuple):
                        at=at if at else None)
 
 
-alias_registry: Dict[str, List[Locator]] = {}
+group_registry: Dict[str, List[Locator]] = {}
 
 
 class AtomSet(Shape):
@@ -101,13 +101,13 @@ class AtomSet(Shape):
 
     def locate(self, locators: Sequence[Locator]) -> 'AtomSet':
         """Convenience method to select multiple fragments from locators
-        while interpreting and extending aliases if necessary"""
+        while interpreting and extending groups if necessary"""
         log.debug(f'Locate {locators} in {self}')
         new = AtomSet()
         assert len(locators) == 0 or isinstance(locators[0], Locator)
         for label, symm_op_code, at in locators:
-            if label in alias_registry:
-                new2 = self.locate(locators=alias_registry[label])
+            if label in group_registry:
+                new2 = self.locate(locators=group_registry[label])
             else:
                 new2 = self.select_atom(label_regex=label)
             new2 = new2.transform(symm_op_code)
