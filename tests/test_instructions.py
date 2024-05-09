@@ -10,6 +10,9 @@ from picometer.parser import parse, parse_path
 from picometer.process import process
 
 
+
+
+
 class TestParsing(unittest.TestCase):
     def setUp(self) -> None:
         self.paths = [Path(__file__).parent.joinpath(f'ferrocene{n}.cif')
