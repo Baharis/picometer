@@ -72,10 +72,14 @@ class Processor:
         self.selection: List[Locator] = []
         self.settings = dict(default_settings, **settings)
 
-    def process(self, instruction: Dict):
-        assert len(instruction) == 1, 'Only singular instructions are accepted'
-        instruction_name = list(instruction.keys())[0]
-        instruction_argument = list(instruction.values())[0]
+    def process(self, instruction: Union[Dict, str]) -> None:
+        if isinstance(instruction, dict):
+            if len(instruction) != 1:
+                raise ValueError('Only singular instructions are accepted')
+            instruction_name = list(instruction.keys())[0]
+            instruction_argument = list(instruction.values())[0]
+        else:
+            instruction_name, instruction_argument = instruction, None
         self.instructions[instruction_name](self, instruction_argument)
 
     def select_auto_clear(self) -> None:
@@ -94,7 +98,11 @@ class Processor:
     @register_instruction('select')
     def select(self, arg: ImplicitInstructionArgument) -> None:
         arg = LocatorInstructionsDict(arg)
-        self.selection.append(Locator.from_dict(arg))
+        loc = Locator.from_dict(arg)
+        if loc:
+            self.selection.append(loc)
+        else:
+            self.selection = []
 
     @register_instruction('recenter')
     def recenter(self, arg: ImplicitInstructionArgument) -> None:

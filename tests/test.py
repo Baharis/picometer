@@ -52,6 +52,17 @@ class TestSettingInstructions(unittest.TestCase):
         for _, ms in p.model_states.items():
             self.assertEqual(ms.atoms.table.loc['Fe', 'fract_x'], 0.0)
 
+    def test_select_atom(self) -> None:
+        self.routine_text += '  - select: Fe\n'
+        p = process(parse(self.routine_text)[0])
+        self.assertEqual(p.selection, [Locator('Fe')])
+
+    def test_select_none(self) -> None:
+        self.routine_text += '  - select: Fe\n'
+        self.routine_text += '  - select'
+        p = process(parse(self.routine_text)[0])
+        self.assertFalse(p.selection)
+
     def test_make_group(self) -> None:
         self.routine_text += '  - select: Fe\n'
         self.routine_text += '  - group: iron'

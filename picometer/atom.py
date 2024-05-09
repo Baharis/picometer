@@ -28,6 +28,9 @@ class Locator(NamedTuple):
                        symm=symm if symm else 'x,y,z',
                        at=at if at else None)
 
+    def __bool__(self):
+        return self.label and self.label != 'None'
+
 
 group_registry: Dict[str, List[Locator]] = {}
 

@@ -72,8 +72,9 @@ The following instructions are currently supported by picometer:
 - **Selection instructions**
   - `select` atoms, groups, or shapes to be used; use raw element names
     or provide symmetry relation / recenter using mapping syntax, for example:
-    `{label: C(11), symm: x;-y;z+1/2, at: Fe(1)}`. By default,
-    selection is cleared after an aggregating or evaluating instruction.
+    `{label: C(11), symm: x;-y;z+1/2, at: Fe(1)}`.
+    By default, selection is cleared after calling `select` with no arguments
+    or calling an aggregating or evaluating instruction.
   - `recenter` selection around a new centroid;
       this action is applied to every selected item individually,
       so to recenter fixed group of atoms, `group` them first and recenter
