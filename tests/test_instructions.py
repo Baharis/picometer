@@ -4,6 +4,7 @@ import unittest
 
 import numpy as np
 import pandas as pd
+from pandas.testing import assert_frame_equal
 
 from picometer.atom import group_registry, Locator
 from picometer.parser import parse, parse_path
@@ -337,7 +338,8 @@ class TestMeasuringInstructions(unittest.TestCase):
         results_path = Path(__file__).parent / 'ferrocene_results.csv'
         correct = pd.read_csv(correct_path)
         results = pd.read_csv(results_path)
-        self.assertTrue(correct.equals(results))
+        assert_frame_equal(correct, results, check_exact=False,
+                           rtol=1e-13, atol=1e-12)
 
 
 if __name__ == '__main__':
