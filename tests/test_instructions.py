@@ -11,9 +11,6 @@ from picometer.parser import parse, parse_path
 from picometer.process import process
 
 
-
-
-
 class TestParsing(unittest.TestCase):
     def setUp(self) -> None:
         self.paths = [Path(__file__).parent.joinpath(f'ferrocene{n}.cif')
@@ -30,7 +27,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(len(routine['load']), 6)
 
     def test_parse_file(self) -> None:
-        routine_path = Path(__file__).parent.joinpath(f'ferrocene.yaml')
+        routine_path = Path(__file__).parent.joinpath('ferrocene.yaml')
         routine = parse_path(routine_path)[0]
         self.assertIn('instructions', routine)
         self.assertIn('load', routine['instructions'][0])
@@ -332,7 +329,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.assertTrue(np.allclose(results, correct))
 
     def test_write(self):
-        routine_path = Path(__file__).parent.joinpath(f'ferrocene.yaml')
+        routine_path = Path(__file__).parent.joinpath('ferrocene.yaml')
         _ = process(parse_path(routine_path)[0])
         correct_path = Path(__file__).parent / 'ferrocene_correct.csv'
         results_path = Path(__file__).parent / 'ferrocene_results.csv'

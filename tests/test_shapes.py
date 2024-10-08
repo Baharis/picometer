@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from picometer.shapes import are_parallel, are_perpendicular,\
+from picometer.shapes import are_parallel, are_perpendicular, \
     degrees_between, Line, Plane, zero3
 
 
@@ -13,8 +13,6 @@ class TestCaseExtras:
     assertNumericallyEqual = partialmethod(
         unittest.TestCase.assertAlmostEqual, places=12)
     """A variant of `self.assertAlmostEqual` with stricter places default"""
-
-
 
 
 v_a = np.array([1.0, 2.0, 3.0], dtype=float)
