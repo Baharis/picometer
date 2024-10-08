@@ -1,10 +1,21 @@
+from functools import partialmethod
 import unittest
 
 import numpy as np
 
-from unittest_utils import TestCaseExtras
 from picometer.shapes import are_parallel, are_perpendicular,\
     degrees_between, Line, Plane, zero3
+
+
+class TestCaseExtras:
+    """A TestCase mix-in with shorthands for existing tests"""
+
+    assertNumericallyEqual = partialmethod(
+        unittest.TestCase.assertAlmostEqual, places=12)
+    """A variant of `self.assertAlmostEqual` with stricter places default"""
+
+
+
 
 v_a = np.array([1.0, 2.0, 3.0], dtype=float)
 v_b = np.array([1.0, 2.0, -3.0], dtype=float)    # 106.602 degrees rel. to v_a
