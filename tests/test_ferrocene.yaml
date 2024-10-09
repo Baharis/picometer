@@ -80,4 +80,4 @@ instructions:
   - select: C(13)
   - select: C(14)
   - angle: C(11)-C(12)-C(13)-C(14)
-  - write: ./ferrocene_results.csv
+  - write: $ferrocene_results

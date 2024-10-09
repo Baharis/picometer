@@ -19,8 +19,9 @@ def get_yaml(file: str, lines: Iterable[int] = None) -> str:
         tests_path = yaml_path.parent
         with open(yaml_path, 'r') as yaml_file:
             routine_template = string.Template(yaml_file.read())
-    cif_paths = {(f := f'ferrocene{i}'): tests_path / (f + '.cif') for i in range(1, 7)}
-    full_routine = routine_template.substitute(cif_paths)
+    paths_map = {(f := f'ferrocene{i}'): tests_path / (f + '.cif') for i in range(1, 7)}
+    paths_map['ferrocene_results'] = tests_path / 'ferrocene_results.csv'
+    full_routine = routine_template.substitute(paths_map)
     full_routine_lines = list(full_routine.splitlines())
     if not lines:
         lines = range(len(full_routine_lines))
@@ -308,8 +309,10 @@ class TestMeasuringInstructions(unittest.TestCase):
     def test_write(self):
         routine_text = get_yaml('test_ferrocene.yaml')
         _ = process(parse(routine_text)[0])
-        correct_path = Path(__file__).parent / 'ferrocene_correct.csv'
-        results_path = Path(__file__).parent / 'ferrocene_results.csv'
+        with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:
+            tests_path = yaml_path.parent
+        correct_path = tests_path / 'ferrocene_correct.csv'
+        results_path = tests_path / 'ferrocene_results.csv'
         correct = pd.read_csv(correct_path, index_col=0)
         results = pd.read_csv(results_path, index_col=0)
         results.index = correct.index  # index is env-dependent so ignore it
