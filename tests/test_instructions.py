@@ -1,5 +1,8 @@
+import importlib.resources
 from pathlib import Path
+import string
 from textwrap import dedent
+from typing import Iterable
 import unittest
 
 import numpy as np
@@ -9,6 +12,20 @@ from pandas.testing import assert_frame_equal
 from picometer.atom import group_registry, Locator
 from picometer.parser import parse, parse_path
 from picometer.process import process
+
+
+def get_test_instructions(rows: Iterable[int] = None) -> str:
+    """Context-aware slicer-getter, returns `rows` of `.test_instructions.yaml`"""
+    with importlib.resources.path('tests', 'test_instructions.yaml') as yaml_path:
+        tests_path = yaml_path.parent
+        with open(yaml_path, 'r') as yaml_file:
+            routine_template = string.Template(yaml_file.read())
+    cif_paths = {(f := f'ferrocene{i}'): tests_path / (f + '.cif') for i in range(1, 7)}
+    full_routine = routine_template.substitute(cif_paths)
+    full_routine_lines = list(full_routine.splitlines())
+    if not rows:
+        rows = range(len(full_routine_lines))
+    return '\n'.join(full_routine_lines[i] for i in rows) + '\n'
 
 
 class TestParsing(unittest.TestCase):
@@ -35,15 +52,7 @@ class TestParsing(unittest.TestCase):
 
 
 class TestSettingInstructions(unittest.TestCase):
-    routine_prefix = dedent("""
-    instructions:
-      - load: ./ferrocene1.cif
-      - load: ./ferrocene2.cif
-      - load: ./ferrocene3.cif
-      - load: ./ferrocene4.cif
-      - load: ./ferrocene5.cif
-      - load: ./ferrocene6.cif
-    """)
+    routine_prefix = get_test_instructions(rows=range(7))
 
     def setUp(self) -> None:
         self.routine_text = self.routine_prefix
@@ -179,38 +188,7 @@ class TestSettingInstructions(unittest.TestCase):
 
 
 class TestMeasuringInstructions(unittest.TestCase):
-    routine_prefix = dedent("""
-    instructions:
-      - load: ./ferrocene1.cif
-      - load: ./ferrocene2.cif
-      - load: ./ferrocene3.cif
-      - load: ./ferrocene4.cif
-      - load: ./ferrocene5.cif
-      - load: ./ferrocene6.cif
-      - select: C.+
-      - group: cp_A
-      - select: cp_A
-      - centroid: cp_A_centroid
-      - select: cp_A
-      - plane: cp_A_plane
-      - select: {label: cp_A, symm: -x;-y;-z}
-      - group: cp_B
-      - select: cp_B
-      - plane: cp_B_plane
-      - select: {label: Fe, symm: x;y;z+1}
-      - select: {label: Fe, symm: x+1;y;z+1}
-      - line: 100_direction
-      - select: Fe
-      - select: {label: Fe, symm: x;y+1;z}
-      - line: 010_direction
-      - select: Fe
-      - select: {label: Fe, symm: x+1;y;z}
-      - select: {label: Fe, symm: x;y+1;z}
-      - plane: 001_plane
-      - select: cp_A_centroid
-      - select: Fe
-      - line: ferrocene_axis
-    """)
+    routine_prefix = get_test_instructions()
 
     def setUp(self) -> None:
         self.routine_text = self.routine_prefix

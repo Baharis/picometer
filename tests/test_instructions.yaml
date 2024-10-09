@@ -1,0 +1,30 @@
+instructions:
+  - load: $ferrocene1
+  - load: $ferrocene2
+  - load: $ferrocene3
+  - load: $ferrocene4
+  - load: $ferrocene5
+  - load: $ferrocene6
+  - select: C.+
+  - group: cp_A
+  - select: cp_A
+  - centroid: cp_A_centroid
+  - select: cp_A
+  - plane: cp_A_plane
+  - select: {label: cp_A, symm: -x;-y;-z}
+  - group: cp_B
+  - select: cp_B
+  - plane: cp_B_plane
+  - select: {label: Fe, symm: x;y;z+1}
+  - select: {label: Fe, symm: x+1;y;z+1}
+  - line: 100_direction
+  - select: Fe
+  - select: {label: Fe, symm: x;y+1;z}
+  - line: 010_direction
+  - select: Fe
+  - select: {label: Fe, symm: x+1;y;z}
+  - select: {label: Fe, symm: x;y+1;z}
+  - plane: 001_plane
+  - select: cp_A_centroid
+  - select: Fe
+  - line: ferrocene_axis
