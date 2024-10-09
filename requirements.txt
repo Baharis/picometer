@@ -1,5 +1,5 @@
 numpy
 pandas
 PyYAML
-hikari-toolkit
+hikari-toolkit>=0.2.3
 uncertainties
