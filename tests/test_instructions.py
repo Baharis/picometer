@@ -306,12 +306,13 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.assertTrue(np.allclose(results, correct))
 
     def test_write(self):
-        routine = get_yaml('ferrocene.yaml')
-        _ = process(parse(routine)[0])
+        routine_text = get_yaml('test_ferrocene.yaml')
+        _ = process(parse(routine_text)[0])
         correct_path = Path(__file__).parent / 'ferrocene_correct.csv'
         results_path = Path(__file__).parent / 'ferrocene_results.csv'
-        correct = pd.read_csv(correct_path)
-        results = pd.read_csv(results_path)
+        correct = pd.read_csv(correct_path, index_col=0)
+        results = pd.read_csv(results_path, index_col=0)
+        results.index = correct.index  # index is env-dependent so ignore it
         assert_frame_equal(correct, results, check_exact=False,
                            rtol=1e-13, atol=1e-12)
 
