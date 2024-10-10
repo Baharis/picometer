@@ -7,7 +7,7 @@ import pandas as pd
 from picometer.atom import group_registry, AtomSet, Locator
 from picometer.models import ModelState, ModelStates
 from picometer.routine import Routine
-from picometer.settings import default_settings
+from picometer.settings import Settings
 
 
 ImplicitInstructionArgument = Union[str, Dict[str, str]]
@@ -70,7 +70,8 @@ class Processor:
         self.evaluation_table = pd.DataFrame()
         self.model_states: ModelStates = {}
         self.selection: List[Locator] = []
-        self.settings = dict(default_settings, **settings)
+        self.settings = Settings.from_yaml()
+        self.settings.update(settings)
 
     def process(self, instruction: Union[Dict, str]) -> None:
         if isinstance(instruction, dict):
@@ -174,8 +175,11 @@ class Processor:
     def write(self, csv_name: str) -> None:
         self.evaluation_table.to_csv(path_or_buf=csv_name)
 
+    @register_instruction('set')
+    def set(self, new_settings: dict) -> None:
+        self.settings.update(new_settings)
 
-def process(routine: Routine):
+def process(routine: list[Routine]):
     settings = routine.get('settings', {})
     processor = Processor(settings)
     instructions = routine.get('instructions', [])
