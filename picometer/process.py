@@ -175,6 +175,10 @@ class Processor:
     def write(self, csv_name: str) -> None:
         self.evaluation_table.to_csv(path_or_buf=csv_name)
 
+    @register_instruction('clear')
+    def clear(self, *_):
+        self.__init__({})
+
     @register_instruction('set')
     def set(self, new_settings: dict) -> None:
         self.settings.update(new_settings)
