@@ -1,8 +1,9 @@
 from collections import UserDict
 from dataclasses import asdict, dataclass, fields, Field
 from importlib import resources
+from typing import Union
 
-from picometer.parser import parse_path
+import yaml
 
 
 class SettingsError(KeyError):
@@ -26,9 +27,10 @@ class Settings(UserDict):
 
     @classmethod
     def from_yaml(cls, path=None) -> 'Settings':
-        with resources.path('picometer', 'settings.yaml') as settings_path:
-            path = settings_path if path is None else path
-            return cls({k: v for s in parse_path(path) for k, v in s.items()})
+        settings_stream = open(path, 'r') if path \
+            else resources.open_text('picometer', 'settings.yaml')
+        with settings_stream:
+            return cls(yaml.safe_load(settings_stream)['settings'])
 
     def __init__(self, data) -> None:
         super().__init__(asdict(DefaultSettings()))  # noqa
@@ -42,7 +44,7 @@ class Settings(UserDict):
         field = DefaultSettings.get_field(key)
         super().__setitem__(key, field.default)
 
-    def update(self, other: dict = None, /, **kwargs) -> None:
+    def update(self, other: Union[dict, UserDict] = None, /, **kwargs) -> None:
         other = {**other, **kwargs} if other else kwargs
         for key, value in other.items():
             self[key] = value

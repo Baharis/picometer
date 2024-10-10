@@ -66,12 +66,13 @@ class Processor:
     """
     instructions: Dict[str, Callable] = {}
 
-    def __init__(self, settings: Dict) -> None:
+    def __init__(self, settings: Settings = None) -> None:
         self.evaluation_table = pd.DataFrame()
-        self.model_states: ModelStates = {}
+        self.model_states: ModelStates = ModelStates()
         self.selection: List[Locator] = []
         self.settings = Settings.from_yaml()
-        self.settings.update(settings)
+        if settings:
+            self.settings.update(settings)
 
     def process(self, instruction: Union[Dict, str]) -> None:
         if isinstance(instruction, dict):
@@ -177,17 +178,15 @@ class Processor:
 
     @register_instruction('clear')
     def clear(self, *_):
-        self.__init__({})
+        self.__init__()
 
     @register_instruction('set')
     def set(self, new_settings: dict) -> None:
         self.settings.update(new_settings)
 
-def process(routine: list[Routine]):
-    settings = routine.get('settings', {})
-    processor = Processor(settings)
-    instructions = routine.get('instructions', [])
-    for instruction in instructions:
+def process(routine: Routine) -> Processor:
+    processor = Processor()
+    for instruction in routine:
         processor.process(instruction)
     return processor
 

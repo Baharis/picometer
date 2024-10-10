@@ -1,1 +1,2 @@
-clear_selection_after_use: True
+settings:
+  clear_selection_after_use: True

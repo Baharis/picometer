@@ -1,6 +1,6 @@
 import importlib.resources
-from pathlib import Path
 import string
+from textwrap import dedent
 from typing import Iterable
 import unittest
 
@@ -9,8 +9,8 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from picometer.atom import group_registry, Locator
-from picometer.parser import parse, parse_path
 from picometer.process import process
+from picometer.routine import Routine
 
 
 def get_yaml(file: str, lines: Iterable[int] = None) -> str:
@@ -28,27 +28,50 @@ def get_yaml(file: str, lines: Iterable[int] = None) -> str:
     return '\n'.join(full_routine_lines[i] for i in lines) + '\n'
 
 
-class TestParsing(unittest.TestCase):
-    def setUp(self) -> None:
-        self.paths = [Path(__file__).parent.joinpath(f'ferrocene{n}.cif')
-                      for n in [1, 2, 3, 4, 5, 6]]
+class TestRoutine(unittest.TestCase):
+    def test_routine_init(self) -> None:
+        routine = Routine()
+        self.assertEqual(len(routine), 0)
 
-    def test_parse_snippet(self) -> None:
-        instructions = "load:\n"
-        for path in self.paths:
-            instructions += f"  - path: {path}\n"
-        routine_queue = parse(instructions)
-        routine = routine_queue[0]
-        self.assertIn('load', routine)
-        self.assertIn('path', routine['load'][0])
-        self.assertEqual(len(routine['load']), 6)
+    def test_routine_from_dict(self) -> None:
+        dict_ = {
+            'settings': {'setting_key': 'setting_value'},
+            'instructions': [{'load': {'path': 'ferrocene1.cif'}},
+                             {'load': 'ferrocene2.cif'}]
+        }
+        routine = Routine.from_dict(dict_)
+        self.assertEqual(len(routine), 3)  # 1 "set" and 2 "load" instructions
+        self.assertIn('load', routine[1])
+        self.assertIn('path', routine[1]['load'])
+        self.assertIn('ferrocene1.cif', routine[1]['load']['path'])
 
-    def test_parse_file(self) -> None:
-        routine_path = Path(__file__).parent.joinpath('test_ferrocene.yaml')
-        routine = parse_path(routine_path)[0]
-        self.assertIn('instructions', routine)
-        self.assertIn('load', routine['instructions'][0])
-        self.assertEqual(len(routine['instructions']), 80)
+    def test_routine_from_string(self) -> None:
+        str_ = dedent("""
+        settings:
+          setting_key: setting_value
+        instructions:
+          - load: {path: ferrocene1.cif}
+          - load: ferrocene2.cif
+        """)
+        routine = Routine.from_string(str_)
+        self.assertEqual(len(routine), 3)  # 1 "set" and 2 "load" instructions
+        self.assertIn('load', routine[1])
+        self.assertIn('path', routine[1]['load'])
+        self.assertIn('ferrocene1.cif', routine[1]['load']['path'])
+
+    def test_routine_from_yaml(self) -> None:
+        with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:
+            routine = Routine.from_yaml(yaml_path)
+        self.assertIn('set', routine[0])
+        self.assertIn('load', routine[1])
+        self.assertEqual(len(routine), 81)
+
+    def test_routine_concatenate(self) -> None:
+        routine1 = Routine(['element1'])
+        routine2 = Routine(['element2'])
+        routine = Routine.concatenate([routine1, routine2])
+        self.assertEqual(len(routine), 3)  # "routine1", "clear", "routine2"
+        self.assertEqual(routine[1], 'clear')
 
 
 class TestSettingInstructions(unittest.TestCase):
@@ -58,31 +81,31 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text = self.routine_prefix
 
     def test_load(self):
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             self.assertEqual(ms.atoms.table.loc['Fe', 'fract_x'], 0.0)
 
     def test_select_atom(self) -> None:
         self.routine_text += '  - select: Fe\n'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         self.assertEqual(p.selection, [Locator('Fe')])
 
     def test_select_none(self) -> None:
         self.routine_text += '  - select: Fe\n'
         self.routine_text += '  - select'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         self.assertFalse(p.selection)
 
     def test_make_group(self) -> None:
         self.routine_text += '  - select: Fe\n'
         self.routine_text += '  - group: iron'
-        _ = process(parse(self.routine_text)[0])
+        _ = process(Routine.from_string(self.routine_text))
         self.assertEqual(group_registry['iron'], [Locator('Fe')])
 
     def test_access_group(self) -> None:
         self.routine_text += '  - select: Fe\n'
         self.routine_text += '  - group: iron'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             self.assertEqual(ms.atoms.locate([Locator('Fe')]).table.index,
                              ms.atoms.locate([Locator('iron')]).table.index)
@@ -90,7 +113,7 @@ class TestSettingInstructions(unittest.TestCase):
     def test_regex_group(self):
         self.routine_text += '  - select: C.+\n'
         self.routine_text += '  - group: cp_A'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         carbon_counts = [5, 5, 10, 10, 15, 15]
         for (_, ms), cc in zip(p.model_states.items(), carbon_counts):
             carbons = ms.atoms.locate([Locator('cp_A')]).table
@@ -101,7 +124,7 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text += '  - group: cp_A\n'
         self.routine_text += '  - select: {label: cp_A, symm: -x;-y;-z}\n'
         self.routine_text += '  - group: cp_B'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             carbons_a = ms.atoms.locate([Locator('cp_A')]).table
             carbons_b = ms.atoms.locate([Locator('cp_B')]).table
@@ -112,7 +135,7 @@ class TestSettingInstructions(unittest.TestCase):
     def test_centroid(self):
         self.routine_text += '  - select: C.+\n'
         self.routine_text += '  - centroid: cp_A_centroid'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             c = ms.centroids.table.loc['cp_A_centroid']
             self.assertGreater(c['fract_x'], 0.113)
@@ -128,7 +151,7 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_A_centroid\n'
         self.routine_text += '  - select: Fe\n'
         self.routine_text += '  - line: ferrocene_axis'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             d = ms.shapes['ferrocene_axis'].direction
             correct = np.array([0.693, 0.718, 0.064])
@@ -137,7 +160,7 @@ class TestSettingInstructions(unittest.TestCase):
     def test_plane(self):
         self.routine_text += '  - select: C.+\n'
         self.routine_text += '  - plane: cp_A_plane\n'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             d = ms.shapes['cp_A_plane'].direction
             correct = np.array([0.680, 0.730, 0.070])
@@ -150,7 +173,7 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text += '  - select: Fe\n'
         self.routine_text += '  - recenter: {label: Fe, symm: z+1;y;z}\n'
         self.routine_text += '  - line: ferrocene_axis_at_next_cell'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             o = ms.shapes['ferrocene_axis_at_next_cell'].origin
             self.assertGreater(o[0], 10.442)
@@ -162,7 +185,7 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text += '  - select: {label: C.+, symm: -x;-y;-z}\n'
         self.routine_text += '  - recenter: iron\n'
         self.routine_text += '  - plane: cp_A_plane_at_iron'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             o = ms.shapes['cp_A_plane_at_iron'].origin
             f = ms.atoms.locate([Locator('iron')]).origin
@@ -176,7 +199,7 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_B\n'
         self.routine_text += '  - recenter: cp_A\n'
         self.routine_text += '  - group: cp_B_at_cp_A'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             o_a = ms.nodes.locate([Locator('cp_A')]).origin
             o_ba = ms.nodes.locate([Locator('cp_B_at_cp_A')]).origin
@@ -197,7 +220,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_A_plane\n'
         self.routine_text += '  - select: cp_B_plane\n'
         self.routine_text += '  - distance: cp_A_to_cp_B_plane_distance'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['cp_A_to_cp_B_plane_distance'].to_numpy()
         correct = np.array([3.2864663644815, 3.2769672330907, 3.288974081930,
                             3.2875174042662, 3.2735236841099, 3.292997025065])
@@ -207,7 +230,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: 100_direction\n'
         self.routine_text += '  - select: 001_plane\n'
         self.routine_text += '  - distance: 100_direction_to_001_plane'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['100_direction_to_001_plane'].to_numpy()
         correct = np.array([4.99475809, 5.07262443, 4.99475809,
                             5.07262443, 4.99475809, 5.07262443])
@@ -217,7 +240,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: 100_direction\n'
         self.routine_text += '  - select: 010_direction\n'
         self.routine_text += '  - distance: 100_direction_to_010_direction'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['100_direction_to_010_direction'].to_numpy()
         correct = np.array([4.99475809, 5.07262443, 4.99475809,
                             5.07262443, 4.99475809, 5.07262443])
@@ -227,7 +250,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_A\n'
         self.routine_text += '  - select: cp_A_plane\n'
         self.routine_text += '  - distance: cp_A_cp_A_plane_offset'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['cp_A_cp_A_plane_offset'].to_numpy()
         correct = np.array([6.99964271e-05, 8.36653335e-06, 1.33526154e-03,
                             1.21160264e-03, 5.96725130e-03, 6.65771648e-03])
@@ -237,7 +260,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_A\n'
         self.routine_text += '  - select: ferrocene_axis\n'
         self.routine_text += '  - distance: cp_A_ferrocene_axis_offset'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['cp_A_ferrocene_axis_offset'].to_numpy()
         correct = np.array([1.39227974, 1.40885241, 1.23443585,
                             1.21138738, 1.19594416, 1.15219622])
@@ -247,7 +270,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_A\n'
         self.routine_text += '  - select: cp_B\n'
         self.routine_text += '  - distance: cp_A_cp_B_offset'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['cp_A_cp_B_offset'].to_numpy()
         correct = np.array([3.35281183, 3.34790063, 3.25804871,
                             3.23411241, 3.15891163, 3.21732243])
@@ -257,7 +280,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: 001_plane\n'
         self.routine_text += '  - select: cp_A_plane\n'
         self.routine_text += '  - angle: 001_plane_cp_A_plane_angle'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['001_plane_cp_A_plane_angle'].to_numpy()
         correct = np.array([86.37457561, 86.04503476, 85.87846808,
                             85.57654087, 86.09193950, 86.00968187])
@@ -267,7 +290,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_A_plane\n'
         self.routine_text += '  - select: ferrocene_axis\n'
         self.routine_text += '  - angle: cp_A_plane_ferrocene_axis_angle'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['cp_A_plane_ferrocene_axis_angle'].to_numpy()
         correct = np.array([88.83344787, 89.04145467, 89.18254017,
                             88.99812150, 89.50083634, 89.06814667])
@@ -277,7 +300,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: 010_direction\n'
         self.routine_text += '  - select: ferrocene_axis\n'
         self.routine_text += '  - angle: 010_direction_ferrocene_axis_angle'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['010_direction_ferrocene_axis_angle'].to_numpy()
         correct = np.array([44.18189561, 44.06982134, 43.99321263,
                             43.63394452, 43.31590821, 43.52811746])
@@ -288,7 +311,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: C(12)\n'
         self.routine_text += '  - select: C(13)\n'
         self.routine_text += '  - angle: C(11)-C(12)-C(13)'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['C(11)-C(12)-C(13)'].to_numpy()
         correct = np.array([107.99651216, 107.98120182, 107.98282958,
                             108.17779184, 108.12639300, 107.63799568])
@@ -300,7 +323,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: C(13)\n'
         self.routine_text += '  - select: C(14)\n'
         self.routine_text += '  - angle: C(11)-C(12)-C(13)-C(14)'
-        p = process(parse(self.routine_text)[0])
+        p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['C(11)-C(12)-C(13)-C(14)'].to_numpy()
         correct = np.array([0.03373221, 0.00041385, 0.02161362,
                             0.11565318, 0.03754215, 0.37636209])
@@ -308,7 +331,7 @@ class TestMeasuringInstructions(unittest.TestCase):
 
     def test_write(self):
         routine_text = get_yaml('test_ferrocene.yaml')
-        _ = process(parse(routine_text)[0])
+        _ = process(Routine.from_string(routine_text))
         with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:
             tests_path = yaml_path.parent
         correct_path = tests_path / 'ferrocene_correct.csv'

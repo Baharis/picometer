@@ -31,7 +31,7 @@ class Routine(UserList):
         if settings := dict_.get('settings'):
             new_routine.append({'set': settings})
         if instructions := dict_.get('instructions'):
-            new_routine.append(instructions)
+            new_routine.extend(instructions)
         return cls(new_routine)
 
     @classmethod

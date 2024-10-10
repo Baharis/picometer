@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-from picometer.parser import parse_path
+from picometer.routine import Routine
 from picometer.process import process
 import sys
 
@@ -20,7 +20,7 @@ def parse_args() -> Namespace:
 def main() -> None:
     args = parse_args()
     if filename := args.filename:
-        routine = parse_path(filename)
+        routine = Routine.from_yaml(filename)
         process(routine)
 
 
