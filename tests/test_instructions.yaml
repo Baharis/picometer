@@ -1,10 +1,10 @@
 instructions:
-  - load: $ferrocene1
-  - load: $ferrocene2
-  - load: $ferrocene3
-  - load: $ferrocene4
-  - load: $ferrocene5
-  - load: $ferrocene6
+  - load: $ferrocene1  # tests will substitute it with ./ferrocene1.cif
+  - load: $ferrocene2  # tests will substitute it with ./ferrocene2.cif
+  - load: $ferrocene3  # tests will substitute it with ./ferrocene3.cif
+  - load: $ferrocene4  # tests will substitute it with ./ferrocene4.cif
+  - load: $ferrocene5  # tests will substitute it with ./ferrocene5.cif
+  - load: $ferrocene6  # tests will substitute it with ./ferrocene6.cif
   - select: C.+
   - group: cp_A
   - select: cp_A

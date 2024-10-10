@@ -44,7 +44,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(len(routine['load']), 6)
 
     def test_parse_file(self) -> None:
-        routine_path = Path(__file__).parent.joinpath('ferrocene.yaml')
+        routine_path = Path(__file__).parent.joinpath('test_ferrocene.yaml')
         routine = parse_path(routine_path)[0]
         self.assertIn('instructions', routine)
         self.assertIn('load', routine['instructions'][0])
