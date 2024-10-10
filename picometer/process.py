@@ -83,8 +83,8 @@ class Processor:
             instruction_name, instruction_argument = instruction, None
         self.instructions[instruction_name](self, instruction_argument)
 
-    def select_auto_clear(self) -> None:
-        if self.settings.get('select_auto_clears'):
+    def clear_selection_after_use(self) -> None:
+        if self.settings.get('clear_selection_after_use'):
             self.selection = []
 
     @register_instruction('load')
@@ -116,7 +116,7 @@ class Processor:
     @register_instruction('group')
     def group(self, label: str) -> None:
         group_registry[label] = deepcopy(self.selection)
-        self.select_auto_clear()
+        self.clear_selection_after_use()
 
     @register_instruction('centroid')
     def centroid(self, label: str) -> None:
@@ -127,21 +127,21 @@ class Processor:
                        'fract_y': [c_fract[1]], 'fract_z': [c_fract[2]], }
             atoms = pd.DataFrame.from_records(c_atoms).set_index('label')
             ms.centroids += AtomSet(focus.base, atoms)
-        self.select_auto_clear()
+        self.clear_selection_after_use()
 
     @register_instruction('line')
     def line(self, label: str) -> None:
         for ms_key, ms in self.model_states.items():
             focus = ms.nodes.locate(self.selection)
             ms.shapes[label] = focus.line
-        self.select_auto_clear()
+        self.clear_selection_after_use()
 
     @register_instruction('plane')
     def plane(self, label: str) -> None:
         for ms_key, ms in self.model_states.items():
             focus = ms.nodes.locate(self.selection)
             ms.shapes[label] = focus.plane
-        self.select_auto_clear()
+        self.clear_selection_after_use()
 
     @register_instruction('distance')
     def distance(self, label: str) -> None:
@@ -155,7 +155,7 @@ class Processor:
             assert len(shapes) == 2
             distance = shapes[0].distance(shapes[1])
             self.evaluation_table.loc[ms_key, label] = distance
-        self.select_auto_clear()
+        self.clear_selection_after_use()
 
     @register_instruction('angle')
     def angle(self, label: str) -> None:
@@ -169,7 +169,7 @@ class Processor:
             assert len(shapes)
             angle = shapes[0].angle(*shapes[1:])
             self.evaluation_table.loc[ms_key, label] = angle
-        self.select_auto_clear()
+        self.clear_selection_after_use()
 
     @register_instruction('write')
     def write(self, csv_name: str) -> None:

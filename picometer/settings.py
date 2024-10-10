@@ -12,7 +12,7 @@ class SettingsError(KeyError):
 @dataclass
 class DefaultSettings:
     """Store default values of all settings. Use `AnyValue` if no default."""
-    select_auto_clears: bool = True
+    clear_selection_after_use: bool = True
 
     @classmethod
     def get_field(cls, key: str) -> Field:

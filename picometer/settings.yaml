@@ -1,1 +1,1 @@
-select_auto_clears: True
+clear_selection_after_use: True
