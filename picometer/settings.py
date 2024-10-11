@@ -32,9 +32,10 @@ class Settings(UserDict):
         with settings_stream:
             return cls(yaml.safe_load(settings_stream)['settings'])
 
-    def __init__(self, data) -> None:
+    def __init__(self, data: dict = None) -> None:
         super().__init__(asdict(DefaultSettings()))  # noqa
-        self.update(data)
+        if data:
+            self.update(data)
 
     def __setitem__(self, key, value, /) -> None:
         field = DefaultSettings.get_field(key)
