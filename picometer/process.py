@@ -184,6 +184,7 @@ class Processor:
     def set(self, new_settings: dict) -> None:
         self.settings.update(new_settings)
 
+
 def process(routine: Routine) -> Processor:
     processor = Processor()
     for instruction in routine:

@@ -43,6 +43,3 @@ class Routine(UserList):
     def from_yaml(cls, path: Union[str, Path]) -> 'Routine':
         with open(path, 'r') as yaml_file:
             return cls.from_string(yaml_file.read())
-
-
-

@@ -1,7 +1,7 @@
 from dataclasses import fields
 import unittest
 
-from picometer.settings import DefaultSettings, Settings, SettingsError
+from picometer.settings import DefaultSettings, Settings
 
 
 class TestSettings(unittest.TestCase):
@@ -37,5 +37,5 @@ class TestSettings(unittest.TestCase):
             else known_setting.type(False)
         self.settings[known_setting.name] = new_value
         self.assertNotEqual(self.settings[known_setting.name], default_value)
-        del(self.settings[known_setting.name])
+        del self.settings[known_setting.name]
         self.assertEqual(self.settings[known_setting.name], default_value)
