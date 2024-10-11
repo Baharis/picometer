@@ -33,7 +33,7 @@ jobs:
       run: poetry install
 
     - name: Install test dependencies
-      run: pip install flake8 pytest
+      run: pip install flake8 pytest pytest-cov sphinx
 
     - name: Lint with flake8
       run: |
@@ -43,7 +43,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
-      run: poetry run pytest tests/ # --cov=picometer --cov-report=xml
+      run: poetry run pytest tests/ --cov=picometer --cov-report=xml
 
     - name: Use Codecov to track coverage
       uses: codecov/codecov-action@v3
