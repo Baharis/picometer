@@ -1,0 +1,4 @@
+cookiecutter
+poetry
+flake8
+pytest
