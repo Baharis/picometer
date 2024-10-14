@@ -1,5 +1,9 @@
 # picometer
 
+[![codecov](https://codecov.io/gh/Baharis/picometer/graph/badge.svg?token=bWGMArFAR8)](https://codecov.io/gh/Baharis/picometer)
+[![CodeFactor](https://www.codefactor.io/repository/github/baharis/picometer/badge)](https://www.codefactor.io/repository/github/baharis/picometer)
+[![Documentation Status](https://readthedocs.org/projects/picometer/badge/?version=stable)](https://picometer.readthedocs.io/en/stable/?badge=stable)
+
 This is a little Python 3.10+ suite which aims to precisely define
 and calculate measurements across multiple crystal structures.
 This is a software for you if you have ever:
