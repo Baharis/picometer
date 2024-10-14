@@ -7,7 +7,7 @@ import yaml
 
 
 class SettingsError(KeyError):
-    """Custom `KeyError` raised when there is any issues with `Settings`"""
+    """Custom `KeyError` raised when there are issues with `DefaultSettings`"""
 
 
 @dataclass

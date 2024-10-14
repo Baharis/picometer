@@ -1,5 +1,9 @@
 # picometer
 
+[![codecov](https://codecov.io/gh/Baharis/picometer/graph/badge.svg?token=bWGMArFAR8)](https://codecov.io/gh/Baharis/picometer)
+[![CodeFactor](https://www.codefactor.io/repository/github/baharis/picometer/badge)](https://www.codefactor.io/repository/github/baharis/picometer)
+[![Documentation Status](https://readthedocs.org/projects/picometer/badge/?version=stable)](https://picometer.readthedocs.io/en/stable/?badge=stable)
+
 This is a little Python 3.10+ suite which aims to precisely define
 and calculate measurements across multiple crystal structures.
 This is a software for you if you have ever:
@@ -30,6 +34,13 @@ In order to use picometer:
 5) Install required python packages: `pip install -r requirements.txt`
 6) Test your installation by running `python -m unittest`
 
+The code is currently updated with an intention to be available for download
+directly from pip:
+```bash
+$ pip install picometer
+```
+
+
 ## Usage
 
 Whenever you want to use picometer, first re-activate the virtual environment
@@ -37,7 +48,7 @@ created during installation following instructions therein.
 Running the program with no arguments produces the help string.
 
 ```shell
-python picometer.py
+python picometer_process.py
 ```
 ```text
 usage: picometer [-h] filename
@@ -91,10 +102,27 @@ The following instructions are currently supported by picometer:
     (ordered) atoms, calculate direct or dihedral angle between presumed bonds.
 
 
-## Contact
+## Contributing
+
+Interested in contributing? Check out the contributing guidelines.
+Please note that this project is released with a Code of Conduct.
+By contributing to this project, you agree to abide by its terms.
+
+
+## License
+
+`picometer` was created by Daniel Tchoń.
+It is licensed under the terms of the MIT license.
+
+
+## Credits
 
 This software has been written as a hobby project of Daniel Tchoń
 (email: dtchon at lbl dot gov, or other address currectly available on
 https://dtools.pl/about/).
-It is made available under the license provided in [LICENSE](LICENSE).
 All contributions and suggestions are heartily welcome!
+
+`picometer` was created with the help of
+[`cookiecutter`](https://cookiecutter.readthedocs.io/en/latest/)
+and the `py-pkgs-cookiecutter` [template](https://github.com/py-pkgs/py-pkgs-cookiecutter).
+It is published with the help of [`poetry`](https://python-poetry.org/).
