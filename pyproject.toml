@@ -14,8 +14,6 @@ pyyaml = "^6.0.2"
 hikari-toolkit = "0.2.3"
 uncertainties = "^3.2.2"
 
-[tool.poetry.dev-dependencies]
-
 [tool.poetry.group.dev.dependencies]
 cookiecutter = "^2.6.0"
 poetry = "^1.8.3"
