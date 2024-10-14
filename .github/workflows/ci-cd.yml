@@ -32,8 +32,8 @@ jobs:
     - name: Install package
       run: poetry install
 
-    - name: Install test dependencies
-      run: pip install flake8 pytest pytest-cov sphinx
+    # - name: Install test dependencies
+    #   run: pip install flake8 pytest pytest-cov sphinx
 
     - name: Lint with flake8
       run: |
