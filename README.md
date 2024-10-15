@@ -48,7 +48,7 @@ created during installation following instructions therein.
 Running the program with no arguments produces the help string.
 
 ```shell
-python picometer_process.py
+python -m picometer
 ```
 ```text
 usage: picometer [-h] filename

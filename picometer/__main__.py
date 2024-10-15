@@ -17,12 +17,13 @@ def parse_args() -> Namespace:
     return ap.parse_args()
 
 
-def main() -> None:
+def main() -> int:
     args = parse_args()
     if filename := args.filename:
         routine = Routine.from_yaml(filename)
         process(routine)
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
