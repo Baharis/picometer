@@ -1,21 +1,32 @@
 # picometer
 
+[![PyPI version](https://img.shields.io/pypi/v/picometer)](https://pypi.org/project/picometer/)
+[![Python version](https://img.shields.io/pypi/pyversions/picometer.svg)](https://www.python.org/downloads/)
 [![codecov](https://codecov.io/gh/Baharis/picometer/graph/badge.svg?token=bWGMArFAR8)](https://codecov.io/gh/Baharis/picometer)
 [![CodeFactor](https://www.codefactor.io/repository/github/baharis/picometer/badge)](https://www.codefactor.io/repository/github/baharis/picometer)
 [![Documentation Status](https://readthedocs.org/projects/picometer/badge/?version=stable)](https://picometer.readthedocs.io/en/stable/?badge=stable)
+[![Gitmoji](https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg)](https://gitmoji.dev)
+[![tests](https://github.com/Baharis/picometer/actions/workflows/ci-cd.yml/badge.svg?branch=master)](https://github.com/Baharis/picometer/actions/workflows/ci-cd.yml)
 
-This is a little Python 3.10+ suite which aims to precisely define
-and calculate measurements across multiple crystal structures.
+Picometer is a Python 3.10+ package which allows to define
+and calculate various metrics across multiple crystal structures
+in a clear and reproducible fashion.
+It is supposed to be used in tandem with a GUI program
+such as [Mercury](https://www.ccdc.cam.ac.uk/solutions/software/mercury/)
+or [Olex2](https://www.olexsys.org/olex2/)
+and applied on a series of cif files with consistent labelling.
+
 This is a software for you if you have ever:
-- Misclicked an atom and lost your 250-atom selection in Olex2,
-- Tried to fit or calculate distances to a line in Mercury,
+- Misclicked and lost your 250-atom selection,
+- Tried to fit or calculate metrics for any plane or line,
 - Spent a day measuring distances and angles in tens of similar structures,
-- Had to redo measurements because of a offensively minor change,
+- Had to redo measurements because of an offensively minor change,
 
-Instead of relying on a graphical interface and evaluating a single structure
-at a time, picometer uses an input yaml file with individual settings
-and consecutive instructions to probe multiple structures concurrently.
-The results are output in a form of a csv file,
+Instead of relying on a graphical interface, picometer reads settings
+and instructions from an input [`.yaml`](https://en.wikipedia.org/wiki/YAML)
+file to probe one or many consistently-named structures concurrently.
+The results are output in a form
+of a [`.csv`](https://en.wikipedia.org/wiki/Comma-separated_values) file,
 which can be then opened in a spreadsheet editor for further analysis.
 Because of that, picometer is a handy tool to save time
 on dumb repeatable labor and focus on what really matters.
@@ -23,16 +34,26 @@ on dumb repeatable labor and focus on what really matters.
 
 ## Installation
 
-In order to use picometer:
-1) Clone (download) the git repository to your computer;
-2) Make sure you have Python version 3.10+ installed;
-3) Create a virtual environment using i.e. venv:
+If you are installing python solely to run picometer or are not concerned
+about introducing additional dependencies,
+installing picometer is as simple as running:
+```commandline
+pip install picometer
+```
+
+However, it is advised to install picometer in a designated
+[virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments).
+This is best achieved by following the linked instructions,
+but can be otherwise summarised as follows:
+1) Make sure you have Python 3.10+ installed:
+   `python --version`
+2) Create a virtual environment using i.e. venv:
    `python -m venv /path/to/virtual_environment`
-4) Activate your virtual environment:
-   use `/path/to/virtual_environment` on Windows or
-   `source /path/to/virtual_environment` on Linux/MacOS;
-5) Install required python packages: `pip install -r requirements.txt`
-6) Test your installation by running `python -m unittest`
+3) Activate your virtual environment:
+   - Windows: `\path\to\virtual_environment\Scripts\activate`
+   - Unix/macOS: `source /path/to/virtual_environment/bin/activate`
+4) Install `picometer` and its dependencies: `pip install picometer`
+
 
 The code is currently updated with an intention to be available for download
 directly from pip:
@@ -48,7 +69,7 @@ created during installation following instructions therein.
 Running the program with no arguments produces the help string.
 
 ```shell
-python picometer_process.py
+python -m picometer
 ```
 ```text
 usage: picometer [-h] filename
@@ -64,12 +85,15 @@ options:
 Author: Daniel Tchoń, baharis @ GitHub
 ```
 
-In order to know what to do, picometer requires an input file
-with (settings and) instructions. This file should follow yaml format
-and the list of instructions, called "routine", must include
-only single-element maps in the `instruction: details` format.
-An example of instruction file is available in `tests` directory.
-The easiest way to generate your file is to manually write it based
+Picometer inputs its settings and instructions from an input
+[`.yaml`](https://en.wikipedia.org/wiki/YAML) file.
+The file can contain a dictionary of `settings`,
+as well as a list of `instructions`.
+The list of instructions, called also a "routine", must include
+only single-element maps in the `- instruction: detail`
+or `- instruction: {details}` format.
+Examples of instruction files are available in the `tests` directory.
+The easiest way to generate your file is to prepare it based
 on the example provided.
 
 
@@ -104,15 +128,17 @@ The following instructions are currently supported by picometer:
 
 ## Contributing
 
-Interested in contributing? Check out the contributing guidelines.
-Please note that this project is released with a Code of Conduct.
+Interested in contributing? Check out the
+[contributing guidelines](CONTRIBUTING.md).
+Please note that this project is released with
+a [Code of Conduct](CONDUCT.md).
 By contributing to this project, you agree to abide by its terms.
 
 
 ## License
 
 `picometer` was created by Daniel Tchoń.
-It is licensed under the terms of the MIT license.
+It is licensed under the terms of the [MIT license](LICENSE).
 
 
 ## Credits
@@ -125,4 +151,7 @@ All contributions and suggestions are heartily welcome!
 `picometer` was created with the help of
 [`cookiecutter`](https://cookiecutter.readthedocs.io/en/latest/)
 and the `py-pkgs-cookiecutter` [template](https://github.com/py-pkgs/py-pkgs-cookiecutter).
-It is published with the help of [`poetry`](https://python-poetry.org/).
+It is published with the help of
+[`poetry`](https://python-poetry.org/),
+[Python Semantic Versioning](https://python-semantic-release.readthedocs.io/en/latest/),
+and [Gitmoji](https://gitmoji.dev/).

@@ -13,18 +13,30 @@ permissions:
   contents: read
 
 jobs:
-  continuous-integration:
+  CI:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.x"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+            representative: True
 
-    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
+    - name: Check-out repository (last commit)
+      uses: actions/checkout@v4
 
-    - name: Check-out repository
-      uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
 
     - name: Install poetry
       uses: snok/install-poetry@v1
@@ -35,15 +47,20 @@ jobs:
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        echo "Linting errors in picometer/tests:"
+        poetry run flake8 ./picometer --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 ./tests --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+        echo "Linting warnings in picometer/tests:"
+        poetry run flake8 ./picometer --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+        poetry run flake8 ./tests --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
 
     - name: Test with pytest
       run: poetry run pytest tests/ --cov=picometer --cov-report=xml
 
     - name: Use Codecov to track coverage
       uses: codecov/codecov-action@v3
+      if: ${{ matrix.representative }}
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
@@ -51,24 +68,58 @@ jobs:
 
     - name: Build documentation
       run: poetry run make html --directory docs/
+      if: ${{ matrix.representative }}
+        
 
-#  continuous-deployment:
-#    # Only run this job if the "ci" job passes
-#    needs: continuous-integration
-#
-#    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-#
-#    # Set up operating system
-#    runs-on: ubuntu-latest
-#
-#    # Define job steps
-#    steps:
-#    - name: Set up Python 3.10
-#      uses: actions/setup-python@v4
-#      with:
-#        python-version: 3.10
-#
-#    - name: Check-out repository
-#      uses: actions/checkout@v3
-#      with:
-#        fetch-depth: 0
+  CD:
+    # Only run this job if the "CI" job passes
+    needs: CI
+
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+
+    # Set up operating system
+    runs-on: ubuntu-latest
+
+    # Define job steps
+    steps:
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10
+
+    - name: Check-out repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Use Python Semantic Release to prepare release
+      id: release
+      uses: python-semantic-release/python-semantic-release@v9
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      if: steps.release.outputs.released == 'true'
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        password: ${{ secrets.TEST_PYPI_PICOMETER_API_TOKEN }}
+
+    - name: Test install from TestPyPI
+      run: |
+          pip install \
+          --index-url https://test.pypi.org/simple/ \
+          --extra-index-url https://pypi.org/simple \
+          picometer
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      if: steps.release.outputs.released == 'true'
+      with:
+        password: ${{ secrets.PYPI_PICOMETER_API_TOKEN }}
+
+    - name: Publish package distributions to GitHub Releases
+      uses: python-semantic-release/publish-action@v9
+      if: steps.release.outputs.released == 'true'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
