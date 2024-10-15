@@ -15,6 +15,7 @@ It is supposed to be used in tandem with a GUI program
 such as [Mercury](https://www.ccdc.cam.ac.uk/solutions/software/mercury/)
 or [Olex2](https://www.olexsys.org/olex2/)
 and applied on a series of cif files with consistent labelling.
+
 This is a software for you if you have ever:
 - Misclicked and lost your 250-atom selection,
 - Tried to fit or calculate metrics for any plane or line,
@@ -52,6 +53,13 @@ but can be otherwise summarised as follows:
    - Windows: `\path\to\virtual_environment\Scripts\activate`
    - Unix/macOS: `source /path/to/virtual_environment/bin/activate`
 4) Install `picometer` and its dependencies: `pip install picometer`
+
+
+The code is currently updated with an intention to be available for download
+directly from pip:
+```bash
+$ pip install picometer
+```
 
 
 ## Usage

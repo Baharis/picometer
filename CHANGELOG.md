@@ -7,4 +7,4 @@
   of continuous deployment using `python-semantic-release`;
 
 ## v0.1.0 (14/10/2024)
-- First release of `picometer`!
+- :tada: First release of `picometer`!
