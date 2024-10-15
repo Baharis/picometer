@@ -29,9 +29,10 @@ python-semantic-release = {version = "^9.11.1", python = "^3.10"}
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:tool.poetry.version", ]  # version location
-branch = "main"                                          # branch to make releases of
+branch = "master"                                        # branch to make releases of
 changelog_file = "CHANGELOG.md"                          # changelog file
 build_command = "pip install poetry && poetry build"     # build dists
+commit_parser = "emoji"                                  # default EmojiCommitParser
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
