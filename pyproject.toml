@@ -34,6 +34,10 @@ changelog_file = "CHANGELOG.md"                          # changelog file
 build_command = "pip install poetry && poetry build"     # build dists
 commit_parser = "emoji"                                  # default EmojiCommitParser
 
+[tool.semantic_release.branches]
+master = { publish = true }        # Stable release branch (master)
+development = { publish = false }  # Used for version checking only
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
