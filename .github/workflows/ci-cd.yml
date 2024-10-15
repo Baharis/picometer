@@ -88,6 +88,9 @@ jobs:
       with:
         python-version: "3.10"
 
+    - name: Downgrade pip to version before 24.1
+      run: pip install pip<24.1 --force-reinstall  # Rm when hikari 0.2.4 is out
+
     - name: Check-out repository
       uses: actions/checkout@v3
       with:
