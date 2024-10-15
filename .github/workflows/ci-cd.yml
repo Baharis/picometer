@@ -30,15 +30,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Check-out repository (full history)
-      uses: actions/checkout@v4
-      if: ${{ matrix.representative }}
-      with:
-        fetch-depth: 0
-
     - name: Check-out repository (last commit)
       uses: actions/checkout@v4
-      if: ${{ !matrix.representative }}
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v5
@@ -76,14 +69,6 @@ jobs:
     - name: Build documentation
       run: poetry run make html --directory docs/
       if: ${{ matrix.representative }}
-
-    - name: Check next package version
-      if: ${{ matrix.representative }}
-      run: |
-        echo "Last released version:"
-        poetry run semantic-release --noop -v version --print-last-released
-        echo "Next released version:"
-        poetry run semantic-release --noop -v version --print
         
 
   CD:
