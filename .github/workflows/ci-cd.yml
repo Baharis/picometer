@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  continuous-integration:
+  CI:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -83,9 +83,9 @@ jobs:
         poetry run semantic-release --noop -v version --print
         
 
-  continuous-deployment:
-    # Only run this job if the "continuous-integration" job passes
-    needs: continuous-integration
+  CD:
+    # Only run this job if the "CI" job passes
+    needs: CI
 
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
