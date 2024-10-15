@@ -1,5 +1,0 @@
-numpy
-pandas
-PyYAML
-hikari-toolkit==0.2.3
-uncertainties

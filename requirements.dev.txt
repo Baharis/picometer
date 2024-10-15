@@ -1,6 +1,0 @@
-cookiecutter
-poetry
-flake8
-pytest
-pytest-cov
-sphinx
