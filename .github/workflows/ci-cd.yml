@@ -59,7 +59,7 @@ jobs:
       run: poetry run pytest tests/ --cov=picometer --cov-report=xml
 
     - name: Use Codecov to track coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       if: ${{ matrix.representative }}
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
