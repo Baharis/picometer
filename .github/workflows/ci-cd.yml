@@ -26,12 +26,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: "poetry"
-
     - name: Check-out repository (full history)
       uses: actions/checkout@v4
       if: ${{ matrix.representative }}
@@ -41,6 +35,12 @@ jobs:
     - name: Check-out repository (last commit)
       uses: actions/checkout@v4
       if: ${{ !matrix.representative }}
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: "poetry"
 
     - name: Install poetry
       uses: snok/install-poetry@v1
