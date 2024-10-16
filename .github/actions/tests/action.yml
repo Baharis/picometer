@@ -7,19 +7,24 @@ runs:
   steps:
   - name: Check-out repository
     uses: actions/checkout@v4
+    shell: bash
 
   - name: Set up Python
     uses: actions/setup-python@v5
+    shell: bash
     with:
       python-version: ${{ inputs.python-version }}
 
   - name: Install poetry
     uses: snok/install-poetry@v1
+    shell: bash
 
   - name: Install package
+    shell: bash
     run: poetry install --with dev
 
   - name: Lint with flake8
+    shell: bash
     run: |
       # stop the build if there are Python syntax errors or undefined names
       echo "Linting errors in picometer/tests:"
@@ -32,6 +37,7 @@ runs:
 
   - name: Use Codecov to track coverage
     uses: codecov/codecov-action@v4
+    shell: bash
     if: ${{ inputs.representative }}
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -39,5 +45,6 @@ runs:
       files: ./coverage.xml   # coverage report
 
   - name: Build documentation
+    shell: bash
     run: poetry run make html --directory docs/
     if: ${{ inputs.representative }}
