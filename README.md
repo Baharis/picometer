@@ -131,7 +131,7 @@ The following instructions are currently supported by picometer:
 Interested in contributing? Check out the
 [contributing guidelines](CONTRIBUTING.md).
 Please note that this project is released with
-a [Code of Conduct](CONDUCT.md).
+a [Code of Conduct](CODE_OF_CONDUCT).
 By contributing to this project, you agree to abide by its terms.
 
 
