@@ -19,7 +19,7 @@ jobs:
 
     outputs:
       os: ${{ steps.setup-matrix.outputs.os }}
-      python: ${{ steps.setup-matrix.outputs.python }}
+      python-version: ${{ steps.setup-matrix.outputs.python-version }}
 
     steps:
       - name: Determine event type and set matrix
@@ -41,7 +41,7 @@ jobs:
     strategy:
       matrix:
         os: ${{ needs.setup.outputs.os }}
-        python-version: ${{ needs.setup.outputs.python }}
+        python-version: ${{ needs.setup.outputs.python-version }}
         include:
           - os: ubuntu-latest
             python-version: "3.10"
