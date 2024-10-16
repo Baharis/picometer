@@ -2,7 +2,7 @@ name: Run Tests
 description: Run tests, linting, coverage, docs check
 
 runs:
-  using: "bash"
+  using: "composite"
 
   steps:
   - name: Check-out repository
