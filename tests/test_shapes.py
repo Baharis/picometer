@@ -37,7 +37,8 @@ class TestVectorTools(unittest.TestCase, TestCaseExtras):
         self.assertNumericallyEqual(degrees_between(v_a, v_b), ab_degrees)
         self.assertNumericallyEqual(degrees_between(v_a, v_c), 90.0)
         self.assertNumericallyEqual(degrees_between(v_a, v_d), 180.0)
-        self.assertNumericallyEqual(degrees_between(v_a, v_b, normalize=True), 180. - ab_degrees)
+        self.assertNumericallyEqual(degrees_between(v_a, v_b, normalize=True),
+                                    180. - ab_degrees)
         self.assertNumericallyEqual(degrees_between(v_a, v_c, normalize=True), 90.0)
         self.assertNumericallyEqual(degrees_between(v_a, v_d, normalize=True), 0.0)
 

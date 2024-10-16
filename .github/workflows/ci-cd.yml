@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Continuous Integration and Deployment
+name: "CI & CD"
 
 on:
   push:
@@ -14,11 +14,34 @@ permissions:
   id-token: write
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    outputs:
+      os: ${{ steps.setup-matrix.outputs.os }}
+      python-version: ${{ steps.setup-matrix.outputs.python-version }}
+
+    steps:
+      - name: Determine event type and set matrix
+        id: setup-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "os=['ubuntu-latest']" >> "$GITHUB_OUTPUT"
+            echo "python-version=['3.10']" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "os=['ubuntu-latest','macos-latest','windows-latest']" >> "$GITHUB_OUTPUT"
+            echo "python-version=['3.10','3.11','3.x']" >> "$GITHUB_OUTPUT"
+          fi
+
   CI:
+    needs: setup
+
+    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ["3.10", "3.x"]
+        os: ${{ fromJSON(needs.setup.outputs.os) }}
+        python-version: ${{ fromJSON(needs.setup.outputs.python-version) }}
         include:
           - os: ubuntu-latest
             python-version: "3.10"
@@ -28,13 +51,11 @@ jobs:
       run:
         shell: bash
 
-    runs-on: ${{ matrix.os }}
-
     steps:
-    - name: Check-out repository (last commit)
+    - name: Check-out repository
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.10
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -70,7 +91,6 @@ jobs:
     - name: Build documentation
       run: poetry run make html --directory docs/
       if: ${{ matrix.representative }}
-        
 
   CD:
     # Only run this job if the "CI" job passes
