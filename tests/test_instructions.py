@@ -317,7 +317,19 @@ class TestMeasuringInstructions(unittest.TestCase):
                             108.17779184, 108.12639300, 107.63799568])
         self.assertTrue(np.allclose(results, correct))
 
-    def test_angle_dihedral_nodes(self):
+    def test_angle_positive_dihedral_nodes(self):
+        self.routine_text += '  - select: H(11)\n'
+        self.routine_text += '  - select: C(11)\n'
+        self.routine_text += '  - select: C(15)\n'
+        self.routine_text += '  - select: Fe\n'
+        self.routine_text += '  - angle: H(11)-C(11)-C(15)-Fe'
+        p = process(Routine.from_string(self.routine_text))
+        results = p.evaluation_table['H(11)-C(11)-C(15)-Fe'].to_numpy()
+        correct = np.array([117.48054368, 118.56063847, 118.81095746,
+                            118.03459677, 122.13488005, 120.58628219])
+        self.assertTrue(np.allclose(results, correct))
+
+    def test_angle_mixed_dihedral_nodes(self):
         self.routine_text += '  - select: C(11)\n'
         self.routine_text += '  - select: C(12)\n'
         self.routine_text += '  - select: C(13)\n'
@@ -325,8 +337,8 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - angle: C(11)-C(12)-C(13)-C(14)'
         p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['C(11)-C(12)-C(13)-C(14)'].to_numpy()
-        correct = np.array([0.03373221, 0.00041385, 0.02161362,
-                            0.11565318, 0.03754215, 0.37636209])
+        correct = np.array([+0.03373221, -0.00041385, +0.02161362,
+                            +0.11565318, -0.03754215, -0.37636209])
         self.assertTrue(np.allclose(results, correct))
 
     def test_write(self):

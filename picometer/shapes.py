@@ -22,15 +22,27 @@ class AtomSet(Protocol):
 
 
 def are_parallel(v: Vector3, w: Vector3) -> bool:
+    """Check if input vectors point along the same line in any direction"""
     return 1 - abs(np.dot(v / norm(v), w / norm(w))) < 1E-8
 
 
+def are_synparallel(v: Vector3, w: Vector3) -> bool:
+    """Check if input vectors point along the same line in the same direction"""
+    return 1 - np.dot(v / norm(v), w / norm(w)) < 1E-8
+
+
+def are_antiparallel(v: Vector3, w: Vector3) -> bool:
+    """Check if input vectors point along the same line in opposite directions"""
+    return 1 + np.dot(v / norm(v), w / norm(w)) < 1E-8
+
+
 def are_perpendicular(v: Vector3, w: Vector3) -> bool:
+    """Check in input vectors are perpendicular"""
     return abs(norm(v) * norm(w) - norm(np.cross(v, w))) < 1E-8
 
 
 def versorize(v: Vector3) -> Versor3:
-    """Normalize and choose lexicographically-larger of two possible results"""
+    """Normalize and choose lexicographically-larger of antiparallel v and -v"""
     assert isinstance(v, np.ndarray) and np.shape(v) == (3, )
     assert (v_norm := np.linalg.norm(v)) > 0
     neg = v[0] < 0 or (v[0] == 0 and (v[1] < 0 or (v[1] == 0 and v[2] < 0)))
