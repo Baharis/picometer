@@ -55,14 +55,42 @@ jobs:
     - name: Check-out repository
       uses: actions/checkout@v4
 
-    - name: apparently we are lost
-      run: echo $(ls)
-
-    - name: Run tests, linting, coverage, docs check
-      uses: ./.github/actions/tests
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        representative: ${{ matrix.representative }}
+
+    - name: Install poetry
+      uses: snok/install-poetry@v1
+
+    - name: Install package
+      run: poetry install --with dev
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        echo "Linting errors in picometer/tests:"
+        poetry run flake8 ./picometer --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 ./tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        echo "Linting warnings in picometer/tests:"
+        poetry run flake8 ./picometer --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+        poetry run flake8 ./tests --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+    - name: Test with pytest
+      run: poetry run pytest tests/ --cov=picometer --cov-report=xml
+
+    - name: Use Codecov to track coverage
+      uses: codecov/codecov-action@v4
+      if: ${{ matrix.representative }}
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      with:
+        files: ./coverage.xml   # coverage report
+
+    - name: Build documentation
+      run: poetry run make html --directory docs/
+      if: ${{ matrix.representative }}
 
   CD:
     # Only run this job if the "CI" job passes
