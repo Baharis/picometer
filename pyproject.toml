@@ -38,7 +38,7 @@ commit_parser = "emoji"                                  # default EmojiCommitPa
 master = { publish = true }        # Stable release branch (master)
 development = { publish = false }  # Used for version checking only
 
-[semantic_release.commit_parser_options]
+[tool.semantic_release.commit_parser_options]
 major_tags = [                          # CAUSE MAJOR VERSION BUMP 0.1.0 -> 1.0.0
     ":boom:",                           # 💥 Introduce breaking changes.
 ]
