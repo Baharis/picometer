@@ -3,8 +3,8 @@ import unittest
 
 import numpy as np
 
-from picometer.shapes import are_parallel, are_perpendicular, \
-    degrees_between, Line, Plane, zero3
+from picometer.shapes import (are_parallel, are_synparallel, are_antiparallel,
+                              are_perpendicular, degrees_between, Line, Plane, zero3)
 
 
 class TestCaseExtras:
@@ -27,6 +27,18 @@ class TestVectorTools(unittest.TestCase, TestCaseExtras):
         self.assertFalse(are_parallel(v_a, v_b))
         self.assertFalse(are_parallel(v_a, v_c))
         self.assertTrue(are_parallel(v_a, v_d))
+
+    def test_are_synparallel(self) -> None:
+        self.assertTrue(are_synparallel(v_a, 2 * v_a))
+        self.assertFalse(are_synparallel(v_a, v_b))
+        self.assertFalse(are_synparallel(v_a, v_c))
+        self.assertFalse(are_synparallel(v_a, v_d))
+
+    def test_are_antiparallel(self) -> None:
+        self.assertFalse(are_antiparallel(v_a, 2 * v_a))
+        self.assertFalse(are_antiparallel(v_a, v_b))
+        self.assertFalse(are_antiparallel(v_a, v_c))
+        self.assertTrue(are_antiparallel(v_a, v_d))
 
     def test_are_perpendicular(self) -> None:
         self.assertFalse(are_perpendicular(v_a, v_b))
