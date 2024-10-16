@@ -52,6 +52,9 @@ jobs:
         shell: bash
 
     steps:
+    - name: apparently we are lost
+      run: echo $(ls)
+
     - name: Run tests, linting, coverage, docs check
       uses: ./.github/actions/tests
       with:
