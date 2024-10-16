@@ -53,7 +53,7 @@ jobs:
 
     steps:
     - name: Run tests, linting, coverage, docs check
-      uses: ./.github/actions/tests
+      uses: ./.github/actions/tests.yml
       with:
         python-version: ${{ matrix.python-version }}
         representative: ${{ matrix.representative }}
