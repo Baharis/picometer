@@ -1,6 +1,75 @@
 # CHANGELOG
 
 
+## v0.1.2 (2024-10-16)
+
+### :arrow_down:
+
+* :arrow_down: Slightly relax dependencies ([`bb81fc8`](https://github.com/Baharis/picometer/commit/bb81fc8480779b7c6d37714d7b2119bf6cd14d53))
+
+### Other
+
+* :green_heart: Fix-add "tool.semantic_release.commit_parser_options" config ([`bc9ac5a`](https://github.com/Baharis/picometer/commit/bc9ac5a1730105b853603496a4733f6cac1a80a6))
+
+* Merge pull request #3 from Baharis/development
+
+:construction_worker: Clear unused code, run all tests only on PR ([`7f95c3f`](https://github.com/Baharis/picometer/commit/7f95c3f60bbae3c37638c416faf01cfdb3cef41a))
+
+* :green_heart: Don't specify python version in step name if variable ([`67b2703`](https://github.com/Baharis/picometer/commit/67b2703dc238f920bd573d15764c984dffbb65e7))
+
+* :art: Fix linting issue in `test_shapes.py` ([`0670d9a`](https://github.com/Baharis/picometer/commit/0670d9a0ccc16002ab80cbb74ed4eacb8d005d43))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`e4a69d3`](https://github.com/Baharis/picometer/commit/e4a69d3957b734ff54e6eb6e5a28f9ad863ee367))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`cba1b20`](https://github.com/Baharis/picometer/commit/cba1b204898dabf9dfef4d7b4e94c38d45444c55))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`da8af3b`](https://github.com/Baharis/picometer/commit/da8af3b88b284f1230945a91c6f64652bcd918b4))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`753d166`](https://github.com/Baharis/picometer/commit/753d166bd52b6bd157ddc05ca2f3ce3cba11cd3d))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`f41887b`](https://github.com/Baharis/picometer/commit/f41887bfa138b54894aac3833631492b3c23156a))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`19d8e8b`](https://github.com/Baharis/picometer/commit/19d8e8b04cd8e90181ec8e8525606269e8e7ff84))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`6a127d2`](https://github.com/Baharis/picometer/commit/6a127d229c7d1ed9abb45fc53591de6e0e94e33d))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`d157b28`](https://github.com/Baharis/picometer/commit/d157b28a2eff84e1d33f7fa1a15cde0453c3013a))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`1d4b6ed`](https://github.com/Baharis/picometer/commit/1d4b6ed55494904a1b6ea7dd16198ec4b5f15abc))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`e1b9df6`](https://github.com/Baharis/picometer/commit/e1b9df60974b09f13d707ca58dfbc548924643be))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`48fe646`](https://github.com/Baharis/picometer/commit/48fe646844ae701fa8c958c511b44420c87e4038))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`32067b2`](https://github.com/Baharis/picometer/commit/32067b2e4426721e5d4bcc96e15b04abe92043e5))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`b0ea81b`](https://github.com/Baharis/picometer/commit/b0ea81bed980d564d3df80691e67873cbdb84c7b))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`910ab84`](https://github.com/Baharis/picometer/commit/910ab84d8096ddb9bcab68d99e22c13ec661b4fc))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`a63e23e`](https://github.com/Baharis/picometer/commit/a63e23e22113eb0ef47f678dfefd783f3969386a))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`d4ea263`](https://github.com/Baharis/picometer/commit/d4ea26395e88b7ed2225894b3d0f0c0e82b28bd7))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`851fa66`](https://github.com/Baharis/picometer/commit/851fa665f1ad94bd013694c9413280fb41b315d2))
+
+* :construction_worker: Run all tests only on PR, 1 otherwise ([`2a25d4d`](https://github.com/Baharis/picometer/commit/2a25d4dca2011f8665cfb37c23a9fa1f97d819e8))
+
+* :memo: Update `example.ipynb` to reflect current `README.md` ([`506b613`](https://github.com/Baharis/picometer/commit/506b613c00e560b21652e9a20a9413115f93ddfd))
+
+* :truck: Move `CONDUCT.md` to `CODE_OF_CONDUCT.md` ([`6f465f8`](https://github.com/Baharis/picometer/commit/6f465f83495b83f8649c67df4d5ae8bf1ab422e7))
+
+* :construction_worker: Align semantic release parser with `https://gitmoji.dev/` spec ([`7167bf3`](https://github.com/Baharis/picometer/commit/7167bf3e7e6b055325618651ec0eec7ae3df16e0))
+
+* :fire: Remove `picometer_process.py` superseded by `__main__.py` ([`f8e1af8`](https://github.com/Baharis/picometer/commit/f8e1af88e84ad53a80d5a7be4610656437e6e2d1))
+
+* :fire: Remove `requirements.dev.txt` superseded by poetry ([`b1d9a65`](https://github.com/Baharis/picometer/commit/b1d9a65b2db49f7e82d6c58512e4e1dcc9eb106e))
+
+* :green_heart: Force reinstall pip to version before 24.1 ([`6b75080`](https://github.com/Baharis/picometer/commit/6b75080a9f7048048e74fd2c4aac13df10b48568))
+
+* :green_heart: Force reinstall pip to version before 24.1 ([`5bd3972`](https://github.com/Baharis/picometer/commit/5bd3972ff0d6b9814fe0b96139b1c86c9b886b5d))
+
+
 ## v0.1.1 (2024-10-15)
 
 ### Other
