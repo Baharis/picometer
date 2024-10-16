@@ -24,6 +24,11 @@ class AtomSet(Protocol):
 def are_parallel(v: Vector3, w: Vector3) -> bool:
     return 1 - abs(np.dot(v / norm(v), w / norm(w))) < 1E-8
 
+def are_synparallel(v: Vector3, w: Vector3) -> bool:
+    return 1 - np.dot(v / norm(v), w / norm(w)) < 1E-8
+
+def are_antiparallel(v: Vector3, w: Vector3) -> bool:
+    return 1 + np.dot(v / norm(v), w / norm(w)) < 1E-8
 
 def are_perpendicular(v: Vector3, w: Vector3) -> bool:
     return abs(norm(v) * norm(w) - norm(np.cross(v, w))) < 1E-8

@@ -8,7 +8,7 @@ import numpy as np
 from numpy.linalg import norm
 import pandas as pd
 
-from picometer.shapes import degrees_between, Line, Plane, Shape, Vector3
+from picometer.shapes import degrees_between, Line, Plane, Shape, Vector3, are_synparallel
 from picometer.utility import ustr2float
 
 
@@ -183,7 +183,9 @@ class AtomSet(Shape):
         elif 4 <= len(combined) <= 6:  # dihedral angle
             plane1_dir = np.cross(xyz[0] - xyz[1], xyz[2] - xyz[1])
             plane2_dir = np.cross(xyz[-3] - xyz[-2], xyz[-1] - xyz[-2])
-            return degrees_between(plane1_dir, plane2_dir, normalize=False)
+            twist_dir = np.cross(plane1_dir, plane2_dir)
+            sign = +1 if are_synparallel(twist_dir, xyz[2] - xyz[1]) else -1
+            return sign * degrees_between(plane1_dir, plane2_dir, normalize=False)
         else:
             return 'Input AtomSet must contain between 3 and 6 atoms'
 
