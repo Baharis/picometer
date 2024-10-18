@@ -67,7 +67,7 @@ class Routine(deque[Instruction]):
     def concatenate(cls, routines: list['Routine']):
         new_routine = routines.pop(0) if routines else Routine()
         while routines:
-            new_routine.append('clear')
+            new_routine.append(Instruction('clear'))
             new_routine.extend(routines.pop(0))
         return cls(new_routine)
 

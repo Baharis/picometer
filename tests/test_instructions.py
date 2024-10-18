@@ -71,7 +71,7 @@ class TestRoutine(unittest.TestCase):
         routine2 = Routine([Instruction('select')])
         routine = Routine.concatenate([routine1, routine2])
         self.assertEqual(len(routine), 3)  # "routine1", "clear", "routine2"
-        self.assertEqual(routine[1], 'clear')
+        self.assertIs(routine[1].keyword, 'clear')
 
 
 class TestSettingInstructions(unittest.TestCase):
