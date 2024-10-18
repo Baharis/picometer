@@ -10,7 +10,7 @@ from pandas.testing import assert_frame_equal
 
 from picometer.atom import group_registry, Locator
 from picometer.process import process
-from picometer.routine import Routine
+from picometer.instructions import Routine, Instruction
 
 
 def get_yaml(file: str, lines: Iterable[int] = None) -> str:
@@ -40,10 +40,10 @@ class TestRoutine(unittest.TestCase):
                              {'load': 'ferrocene2.cif'}]
         }
         routine = Routine.from_dict(dict_)
-        self.assertEqual(len(routine), 3)  # 1 "set" and 2 "load" instructions
-        self.assertIn('load', routine[1])
-        self.assertIn('path', routine[1]['load'])
-        self.assertIn('ferrocene1.cif', routine[1]['load']['path'])
+        self.assertEqual(len(routine), 3)  # one "set", two "load" instructions
+        self.assertEqual('load', routine[1].keyword)
+        self.assertIn('path', routine[1].kwargs)
+        self.assertIn('ferrocene1.cif', routine[1].kwargs['path'])
 
     def test_routine_from_string(self) -> None:
         str_ = dedent("""
@@ -55,20 +55,20 @@ class TestRoutine(unittest.TestCase):
         """)
         routine = Routine.from_string(str_)
         self.assertEqual(len(routine), 3)  # 1 "set" and 2 "load" instructions
-        self.assertIn('load', routine[1])
-        self.assertIn('path', routine[1]['load'])
-        self.assertIn('ferrocene1.cif', routine[1]['load']['path'])
+        self.assertEqual('load', routine[1].keyword)
+        self.assertIn('path', routine[1].kwargs)
+        self.assertIn('ferrocene1.cif', routine[1].kwargs['path'])
 
     def test_routine_from_yaml(self) -> None:
         with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:
             routine = Routine.from_yaml(yaml_path)
-        self.assertIn('set', routine[0])
-        self.assertIn('load', routine[1])
+        self.assertEqual('set', routine[0].keyword)
+        self.assertEqual('load', routine[1].keyword)
         self.assertEqual(len(routine), 81)
 
     def test_routine_concatenate(self) -> None:
-        routine1 = Routine(['element1'])
-        routine2 = Routine(['element2'])
+        routine1 = Routine([Instruction('select')])
+        routine2 = Routine([Instruction('select')])
         routine = Routine.concatenate([routine1, routine2])
         self.assertEqual(len(routine), 3)  # "routine1", "clear", "routine2"
         self.assertEqual(routine[1], 'clear')

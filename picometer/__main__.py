@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-from picometer.routine import Routine
+from picometer.instructions import Routine
 from picometer.process import process
 import sys
 

@@ -29,7 +29,7 @@ class Locator(NamedTuple):
                        at=at if at else None)
 
     def __bool__(self):
-        return self.label and self.label != 'None'
+        return self.label is not None
 
 
 group_registry: Dict[str, List[Locator]] = {}
