@@ -35,6 +35,14 @@ class Instruction:
         self.keyword: str = next(iter(input_.keys()))
         self.raw_kwargs: Union[str, dict[str, Any]] = next(iter(input_.values()))
 
+    def __eq__(self, other):
+        if isinstance(other, Instruction):
+            return self.handler == other.handler and self.kwargs == other.kwargs
+        return NotImplemented
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({self.as_dict()})'
+
     @property
     def handler(self) -> 'BaseInstructionHandler':
         return BaseInstructionHandlerType.REGISTRY[self.keyword]
@@ -42,6 +50,8 @@ class Instruction:
     @property
     def kwargs(self) -> dict[str, Any]:
         expected_kwargs = self.handler.kwargs
+        if expected_kwargs is None:
+            return self.raw_kwargs
         kwargs_ = {ek_key: None for ek_key in expected_kwargs.keys()}
         if isinstance(self.raw_kwargs, dict):
             for raw_kwarg_key, raw_kwarg_value in self.raw_kwargs.items():
@@ -54,6 +64,9 @@ class Instruction:
             expected_kwarg_type = list(expected_kwargs.values())[0]
             kwargs_[expected_kwarg_key] = expected_kwarg_type(self.raw_kwargs)
         return kwargs_
+
+    def as_dict(self) -> dict[str: Union[str, dict]]:
+        return {self.keyword: self.raw_kwargs}
 
 
 class Routine(deque[Instruction]):
@@ -91,6 +104,13 @@ class Routine(deque[Instruction]):
     def from_yaml(cls, path: Union[str, Path]) -> 'Routine':
         with open(path, 'r') as yaml_file:
             return cls.from_string(yaml_file.read())
+
+    def as_dict(self) -> dict[str, list[dict]]:
+        return {'instructions': [i.as_dict() for i in self]}
+
+    def to_yaml(self, path: Union[str, Path]) -> None:
+        with open(path, 'w') as yaml_file:
+            yaml.dump(self.as_dict(), yaml_file) #TODO
 
 
 class ProcessorProtocol(Protocol):
@@ -172,8 +192,6 @@ class SelectInstructionHandler(BaseInstructionHandler):
 
     def handle(self, instruction: Instruction) -> None:
         loc = Locator.from_dict(instruction.kwargs)
-        print(loc)
-        print(type(loc))
         if loc:
             self.processor.selection.append(loc)
         else:

@@ -1,5 +1,7 @@
 import importlib.resources
+from pathlib import Path
 import string
+import tempfile
 from textwrap import dedent
 from typing import Iterable
 import unittest
@@ -66,12 +68,47 @@ class TestRoutine(unittest.TestCase):
         self.assertEqual('load', routine[1].keyword)
         self.assertEqual(len(routine), 81)
 
+    def test_routine_to_yaml(self) -> None:
+        with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:
+            r1 = Routine.from_yaml(yaml_path)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yaml2_path = Path(temp_dir) / 'yaml.yaml'
+            r1.to_yaml(yaml2_path)
+            r2 = Routine.from_yaml(yaml2_path)
+        self.assertEqual(r1, r2)
+
     def test_routine_concatenate(self) -> None:
         routine1 = Routine([Instruction('select')])
         routine2 = Routine([Instruction('select')])
         routine = Routine.concatenate([routine1, routine2])
         self.assertEqual(len(routine), 3)  # "routine1", "clear", "routine2"
         self.assertIs(routine[1].keyword, 'clear')
+
+
+class TestBasicsInstructions(unittest.TestCase):
+    def test_init(self) -> None:
+        _ = Instruction({'unused_keyword': 'unused_str_argument'})  # dict input
+        _ = Instruction('unused_keyword_without_argument')          # str input
+        _ = Instruction(unused_keyword='unused_str_argument')       # kwargs input
+        with self.assertRaises(ValueError):  # Length is 0 but must be 1
+            _ = Instruction()
+        with self.assertRaises(ValueError):  # Length is 0 but must be 1
+            _ = Instruction({})
+        with self.assertRaises(ValueError):  # Length is 2 but must be 1
+            _ = Instruction({'unused_keyword1': None, 'unused_keyword2': None})
+
+    def test_equal(self) -> None:
+        i1 = Instruction({'select': {}})
+        i2 = Instruction('select')
+        i3 = Instruction({'select': 'atom'})
+        i4 = Instruction({'select': {'label': 'atom'}})
+        self.assertEqual(i1, i2)
+        self.assertEqual(i3, i4)
+
+    def test_as_dict(self) -> None:
+        d = {'select': {'label': 'atom', 'symm': None, 'at': None}}
+        i = Instruction(d)
+        self.assertEqual(d, i.as_dict())
 
 
 class TestSettingInstructions(unittest.TestCase):
