@@ -13,6 +13,7 @@ class SettingsError(KeyError):
 @dataclass
 class DefaultSettings:
     """Store default values of all settings. Use `AnyValue` if no default."""
+    auto_write_unit_cell: bool = True
     clear_selection_after_use: bool = True
 
     @classmethod

@@ -12,6 +12,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Union, Protocol
 
+from numpy import rad2deg
 import pandas as pd
 import yaml
 
@@ -185,6 +186,15 @@ class LoadInstructionHandler(BaseInstructionHandler):
         atoms = AtomSet.from_cif(cif_path=cif_path, block_name=block_name)
         label = cif_path + (':' + block_name if block_name else '')
         self.processor.model_states[label] = ModelState(atoms=atoms)
+        if not self.processor.settings['auto_write_unit_cell']:
+            return
+        self.processor.evaluation_table.loc[label, 'unit_cell_a'] = atoms.base.a_d
+        self.processor.evaluation_table.loc[label, 'unit_cell_b'] = atoms.base.b_d
+        self.processor.evaluation_table.loc[label, 'unit_cell_c'] = atoms.base.c_d
+        self.processor.evaluation_table.loc[label, 'unit_cell_al'] = rad2deg(atoms.base.al_d)
+        self.processor.evaluation_table.loc[label, 'unit_cell_be'] = rad2deg(atoms.base.be_d)
+        self.processor.evaluation_table.loc[label, 'unit_cell_ga'] = rad2deg(atoms.base.ga_d)
+        self.processor.evaluation_table.loc[label, 'unit_cell_v'] = atoms.base.v_d
 
 
 class SelectInstructionHandler(BaseInstructionHandler):

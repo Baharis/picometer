@@ -65,7 +65,7 @@ class TestRoutine(unittest.TestCase):
         with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:
             routine = Routine.from_yaml(yaml_path)
         self.assertEqual('set', routine[0].keyword)
-        self.assertEqual('load', routine[1].keyword)
+        self.assertEqual('load', routine[5].keyword)
         self.assertEqual(len(routine), 81)
 
     def test_routine_to_yaml(self) -> None:

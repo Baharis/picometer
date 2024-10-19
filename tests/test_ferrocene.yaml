@@ -1,4 +1,5 @@
 settings:
+  auto_write_unit_cell: False
   clear_selection_after_use: True
 instructions:
   - load: $ferrocene1  # tests will substitute it with ./ferrocene1.cif
