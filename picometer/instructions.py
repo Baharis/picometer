@@ -44,7 +44,7 @@ class Instruction:
         return f'{self.__class__.__name__}({self.as_dict()})'
 
     @property
-    def handler(self) -> 'BaseInstructionHandler':
+    def handler(self) -> 'type(BaseInstructionHandler)':
         return BaseInstructionHandlerType.REGISTRY[self.keyword]
 
     @property
@@ -110,11 +110,12 @@ class Routine(deque[Instruction]):
 
     def to_yaml(self, path: Union[str, Path]) -> None:
         with open(path, 'w') as yaml_file:
-            yaml.dump(self.as_dict(), yaml_file) #TODO
+            yaml.dump(self.as_dict(), yaml_file)
 
 
 class ProcessorProtocol(Protocol):
     evaluation_table: pd.DataFrame
+    history: Routine
     model_states: ModelStates
     selection: list[Locator]
     settings: dict[str, Any]

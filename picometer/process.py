@@ -60,6 +60,7 @@ class Processor:
 
     def __init__(self, settings: Settings = None) -> None:
         self.evaluation_table = pd.DataFrame()
+        self.history = Routine()
         self.model_states: ModelStates = ModelStates()
         self.selection: List[Locator] = []
         self.settings = Settings.from_yaml()
@@ -69,6 +70,7 @@ class Processor:
     def process(self, instruction: Instruction) -> None:
         handler = instruction.handler(self)
         handler.handle(instruction)
+        self.history.append(instruction)
 
 
 def process(routine: Routine) -> Processor:

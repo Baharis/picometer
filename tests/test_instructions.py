@@ -391,6 +391,13 @@ class TestMeasuringInstructions(unittest.TestCase):
         assert_frame_equal(correct, results, check_exact=False,
                            rtol=1e-13, atol=1e-12)
 
+    def test_document_history(self):
+        routine_text = get_yaml('test_ferrocene.yaml')
+        original_routine = Routine.from_string(routine_text)
+        processor = process(original_routine)
+        historic_routine = processor.history
+        self.assertEqual(original_routine, historic_routine)
+
 
 if __name__ == '__main__':
     unittest.main()
