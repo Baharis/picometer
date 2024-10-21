@@ -16,7 +16,7 @@ class Processor:
     """
     This is the main class responsible for controlling, processing,
     storing current state, importing, exporting the current state
-    of work performed in picometer.
+    of work performed in picometer via `process`ing `Instruction`s.
     """
     instructions: Dict[str, Callable] = {}
 
@@ -31,6 +31,7 @@ class Processor:
         logger.info(f'Initialized processor {self}')
 
     def process(self, instruction: Instruction) -> None:
+        """Process one instruction by handling it by dedicated `InstructionHandle`"""
         handler = instruction.handler(self)
         handler.handle(instruction)
         self.history.append(instruction)
@@ -38,6 +39,7 @@ class Processor:
 
 
 def process(routine: Routine) -> Processor:
+    """Shorthand function to process a full `Routine` of `Instruction`s"""
     logger.info(f'Bulk-processing {routine}')
     processor = Processor()
     for instruction in routine:

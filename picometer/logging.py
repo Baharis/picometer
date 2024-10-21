@@ -7,10 +7,9 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 
 
 def _get_logger() -> logging.Logger:
-    # Set up the logger
+    """Set up logging, but don't log yet in case picometer is used as package"""
     logger_ = logging.getLogger('picometer')
-    logger_.setLevel(logging.DEBUG)  # Set log level
-    # File handler to write logs to a file
+    logger_.setLevel(logging.DEBUG)
     logger_.addHandler(logging.NullHandler())
     return logger_
 
@@ -41,6 +40,7 @@ class LogEventHandler(logging.Handler):
 
 
 def register_log_listener(log_callback: Callable[[str], Any]) -> LogEventHandler:
+    """A simple implementation, register function to call it for each log entry"""
     log_event_handler = LogEventHandler(log_callback)
     log_event_handler.setLevel(logging.DEBUG)
     log_event_handler.setFormatter(formatter)

@@ -24,4 +24,4 @@ class ModelState:
 
 
 class ModelStates(dict[str, ModelState]):
-    pass
+    """A simple dictionary that stores `ModelState`s under their path"""

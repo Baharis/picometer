@@ -24,6 +24,9 @@ from picometer.models import ModelState, ModelStates
 logger = logging.getLogger(__name__)
 
 
+# ~~~~~~~~~~~~~~~~~~~ INSTRUCTION AND ROUTINE DECLARATIONS ~~~~~~~~~~~~~~~~~~~ #
+
+
 class Instruction:
     """An individual atomic instruction to be processed by the processor"""
     def __init__(self, raw_instruction: Union[dict, str] = None, /, **kwargs):
@@ -118,15 +121,15 @@ class Routine(deque[Instruction]):
             yaml.dump(self.as_dict(), yaml_file)
 
 
+# ~~~~~~~~~~~~~~~~~~~ INSTRUCTION REGISTRY AND BASE CLASSES ~~~~~~~~~~~~~~~~~~ #
+
+
 class ProcessorProtocol(Protocol):
     evaluation_table: pd.DataFrame
     history: Routine
     model_states: ModelStates
     selection: list[Locator]
     settings: dict[str, Any]
-
-
-# ~~~~~~~~~~~~~~~~~~~ INSTRUCTION REGISTRY AND BASE CLASSES ~~~~~~~~~~~~~~~~~~ #
 
 
 class BaseInstructionHandlerType(type):

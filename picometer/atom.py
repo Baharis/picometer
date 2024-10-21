@@ -66,6 +66,7 @@ class AtomSet(Shape):
 
     @classmethod
     def from_cif(cls, cif_path: str, block_name: str = None) -> 'AtomSet':
+        """Initialize from cif file using hikari's `BaseFrame` and `CifFrame`"""
         bf = BaseFrame()
         cf = CifFrame()
         cf.read(cif_path)
@@ -124,7 +125,7 @@ class AtomSet(Shape):
 
     def select_atom(self, label_regex: str) -> 'AtomSet':
         mask = self.table.index == label_regex
-        if not any(mask):
+        if not any(mask):  # noqa: mask will in fact be Iterable
             mask = self.table.index.str.match(label_regex)
         logger.debug(f'Selected {sum(mask)} atoms with {label_regex=}')
         return self.__class__(self.base, deepcopy(self.table[mask]))
