@@ -136,7 +136,7 @@ class BaseInstructionHandlerType(type):
     def __new__(mcs, *args, **kwargs) -> 'BaseInstructionHandlerType':
         new_cls = type.__new__(mcs, *args, **kwargs)
         if name := getattr(new_cls, 'name', ''):
-          mcs.REGISTRY[name] = new_cls
+            mcs.REGISTRY[name] = new_cls
         return new_cls
 
 
@@ -165,7 +165,7 @@ class BaseInstructionHandler(metaclass=BaseInstructionHandlerType):
 
     def clear_selection(self):
         self.processor.selection = []
-        logger.info(f'Cleared selection')
+        logger.info('Cleared selection')
 
     def clear_selection_after_use(self) -> None:
         if self.processor.settings.get('clear_selection_after_use'):
@@ -200,13 +200,14 @@ class LoadInstructionHandler(BaseInstructionHandler):
         logger.info(f'Loaded model state {label}')
         if not self.processor.settings['auto_write_unit_cell']:
             return
-        self.processor.evaluation_table.loc[label, 'unit_cell_a'] = atoms.base.a_d
-        self.processor.evaluation_table.loc[label, 'unit_cell_b'] = atoms.base.b_d
-        self.processor.evaluation_table.loc[label, 'unit_cell_c'] = atoms.base.c_d
-        self.processor.evaluation_table.loc[label, 'unit_cell_al'] = rad2deg(atoms.base.al_d)
-        self.processor.evaluation_table.loc[label, 'unit_cell_be'] = rad2deg(atoms.base.be_d)
-        self.processor.evaluation_table.loc[label, 'unit_cell_ga'] = rad2deg(atoms.base.ga_d)
-        self.processor.evaluation_table.loc[label, 'unit_cell_v'] = atoms.base.v_d
+        et = self.processor.evaluation_table
+        et.loc[label, 'unit_cell_a'] = atoms.base.a_d
+        et.loc[label, 'unit_cell_b'] = atoms.base.b_d
+        et.loc[label, 'unit_cell_c'] = atoms.base.c_d
+        et.loc[label, 'unit_cell_al'] = rad2deg(atoms.base.al_d)
+        et.loc[label, 'unit_cell_be'] = rad2deg(atoms.base.be_d)
+        et.loc[label, 'unit_cell_ga'] = rad2deg(atoms.base.ga_d)
+        et.loc[label, 'unit_cell_v'] = atoms.base.v_d
 
 
 class SelectInstructionHandler(BaseInstructionHandler):
@@ -338,7 +339,7 @@ class ClearInstructionHandler(BaseInstructionHandler):
 
     def handle(self, instruction: Instruction) -> None:
         self.processor.__init__()
-        logger.info(f'Reinitialized processor')
+        logger.info('Reinitialized processor')
 
 
 class SetInstructionHandler(BaseInstructionHandler):

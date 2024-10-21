@@ -12,7 +12,6 @@ from pandas.testing import assert_frame_equal
 
 from picometer.atom import group_registry, Locator
 from picometer.instructions import Routine, Instruction
-from picometer.logging import add_file_handler, logger
 from picometer.process import process
 
 

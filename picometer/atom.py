@@ -8,7 +8,8 @@ import numpy as np
 from numpy.linalg import norm
 import pandas as pd
 
-from picometer.shapes import degrees_between, Line, Plane, Shape, Vector3, are_synparallel
+from picometer.shapes import (are_synparallel, degrees_between, Line,
+                              Plane, Shape, Vector3)
 from picometer.utility import ustr2float
 
 

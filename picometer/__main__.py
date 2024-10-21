@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from picometer.instructions import Routine
-from picometer.logging import add_file_handler, logger
+from picometer.logging import add_file_handler
 from picometer.process import process
 import sys
 
