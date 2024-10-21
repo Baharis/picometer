@@ -182,16 +182,8 @@ class AtomSet(Shape):
         assert all(o.kind is o.Kind.spatial for o in [self, *others])
         combined = sum(others, self)
         xyz = combined.cart_xyz.T
-        if len(combined) == 3:  # interior angle
-            return degrees_between(xyz[0] - xyz[1], xyz[2] - xyz[1])
-        elif 4 <= len(combined) <= 6:  # dihedral angle
-            plane1_dir = np.cross(xyz[0] - xyz[1], xyz[2] - xyz[1])
-            plane2_dir = np.cross(xyz[-3] - xyz[-2], xyz[-1] - xyz[-2])
-            twist_dir = np.cross(plane1_dir, plane2_dir)
-            sign = +1 if are_synparallel(twist_dir, xyz[2] - xyz[1]) else -1
-            return sign * degrees_between(plane1_dir, plane2_dir, normalize=False)
-        else:
-            return 'Input AtomSet must contain between 3 and 6 atoms'
+        assert len(combined) == 3, 'Input AtomSet must contain exactly 3 atoms'
+        return degrees_between(xyz[0] - xyz[1], xyz[2] - xyz[1])
 
     def _distance(self, other: 'Shape') -> float:
         if other.kind is self.Kind.spatial:
@@ -209,3 +201,15 @@ class AtomSet(Shape):
             norms = norm(deltas, axis=1)
             along = np.abs(np.dot(deltas, other.direction))
             return min(norms ** 2 - along ** 2)
+
+    def dihedral(self, *others: 'AtomSet'):
+        assert all(o.kind is o.Kind.spatial for o in [self, *others])
+        combined = sum(others, self)
+        xyz = combined.cart_xyz.T
+        assert len(combined) == 4, 'Input AtomSet must contain exactly 4 atoms'
+        plane1_dir = np.cross(xyz[0] - xyz[1], xyz[2] - xyz[1])
+        plane2_dir = np.cross(xyz[-3] - xyz[-2], xyz[-1] - xyz[-2])
+        twist_dir = np.cross(plane1_dir, plane2_dir)
+        sign = +1 if are_synparallel(twist_dir, xyz[2] - xyz[1]) else -1
+        return sign * degrees_between(plane1_dir, plane2_dir, normalize=False)
+

@@ -19,7 +19,7 @@ import yaml
 
 from picometer.atom import group_registry, AtomSet, Locator
 from picometer.models import ModelState, ModelStates
-
+from picometer.shapes import ExplicitShape
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +186,15 @@ class SerialInstructionHandler(BaseInstructionHandler):
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         """Abstract function to handle a process a single model state"""
 
+    def _collect_shapes(self, ms: ModelState) -> list[ExplicitShape]:
+        shapes = []
+        for locator in self.processor.selection:
+            if (shape_label := locator.label) in ms.shapes:
+                shapes.append(ms.shapes[shape_label])
+            else:
+                shapes.append(ms.nodes.locate([locator]))
+        return shapes
+
 
 # ~~~~~~~~~~~~~~~~~~~~ CONCRETE INSTRUCTIONS DECLARATIONS ~~~~~~~~~~~~~~~~~~~~ #
 
@@ -296,12 +305,7 @@ class DistanceInstructionHandler(SerialInstructionHandler):
 
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         label = instruction.kwargs['label']
-        shapes = []
-        for locator in self.processor.selection:
-            if (shape_label := locator.label) in ms.shapes:
-                shapes.append(ms.shapes[shape_label])
-            else:
-                shapes.append(ms.nodes.locate([locator]))
+        shapes = self._collect_shapes(ms)
         assert len(shapes) == 2
         distance = shapes[0].distance(shapes[1])
         self.processor.evaluation_table.loc[ms_key, label] = distance
@@ -314,16 +318,24 @@ class AngleInstructionHandler(SerialInstructionHandler):
 
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         label = instruction.kwargs['label']
-        shapes = []
-        for locator in self.processor.selection:
-            if (shape_label := locator.label) in ms.shapes:
-                shapes.append(ms.shapes[shape_label])
-            else:
-                shapes.append(ms.nodes.locate([locator]))
+        shapes = self._collect_shapes(ms)
         assert len(shapes)
         angle = shapes[0].angle(*shapes[1:])
         self.processor.evaluation_table.loc[ms_key, label] = angle
         logger.info(f'Evaluated angle {label}: {angle} for model state {ms_key}')
+
+
+class DihedralInstructionHandler(SerialInstructionHandler):
+    name = 'dihedral'
+    kwargs = dict(label=str)
+
+    def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
+        label = instruction.kwargs['label']
+        shapes = self._collect_shapes(ms)
+        assert len(shapes) == 4 and all(s.kind is s.Kind.spatial for s in shapes)
+        dihedral = shapes[0].dihedral(*shapes[1:])  # noqa: shapes: list[AtomSet]
+        self.processor.evaluation_table.loc[ms_key, label] = dihedral
+        logger.info(f'Evaluated dihedral {label}: {dihedral} for model state {ms_key}')
 
 
 class WriteInstructionHandler(BaseInstructionHandler):
