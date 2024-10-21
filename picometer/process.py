@@ -1,7 +1,5 @@
-from collections import UserDict
-
 import logging
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List
 
 import pandas as pd
 
@@ -14,44 +12,6 @@ from picometer.settings import Settings
 logger = logging.getLogger(__name__)
 
 
-def explicit_kwargs(**expected_kwargs: type) -> type:  # TODO RM
-    class ExplicitInstructionArgs(UserDict):
-        def __init__(self, arg):
-            new = {}
-            if isinstance(arg, dict):
-                for key, value in arg.items():
-                    assert key in expected_kwargs.keys(), f'Unknown key: {key}'
-                    new[key] = expected_kwargs[key](value)
-            else:
-                expected_key, expected_type = list(expected_kwargs.items())[0]
-                new[expected_key] = expected_type(arg)
-            for expected_key in expected_kwargs.keys():
-                if expected_key not in new.keys():
-                    new[expected_key] = None
-            super().__init__(**new)
-    return ExplicitInstructionArgs
-
-
-def registers_instructions(cls):
-    """Class decorator that registers class methods in `cls.instructions`"""
-    cls.instructions = {}
-    for method_name in dir(cls):
-        method = getattr(cls, method_name)
-        if hasattr(method, '_name'):
-            name = getattr(method, '_name')
-            cls.instructions.update({name: method})
-    return cls
-
-
-def register_instruction(name: str) -> Callable:
-    """Method decorator that registers this method in `cls.instructions`"""
-    def decorator(processor_method: Callable) -> Callable:
-        processor_method._name = name
-        return processor_method
-    return decorator
-
-
-@registers_instructions  # TODO RM END
 class Processor:
     """
     This is the main class responsible for controlling, processing,
@@ -83,10 +43,3 @@ def process(routine: Routine) -> Processor:
     for instruction in routine:
         processor.process(instruction)
     return processor
-
-# TODO RM
-if __name__ == '__main__':
-    p = Processor()
-    print(p.instructions)
-    print(p.instructions['load'])
-    print(p.instructions['load'](p, {'block': '123'}))
