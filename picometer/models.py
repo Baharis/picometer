@@ -1,5 +1,10 @@
+import logging
+
 from picometer.atom import AtomSet
 from picometer.shapes import ExplicitShape
+
+
+logger = logging.getLogger(__name__)
 
 
 class ModelState:
@@ -11,6 +16,7 @@ class ModelState:
         self.atoms: AtomSet = atoms
         self.centroids: AtomSet = centroids
         self.shapes: dict[str, ExplicitShape] = shapes if shapes else {}
+        logger.debug(f'Initialized {self}')
 
     @property
     def nodes(self):

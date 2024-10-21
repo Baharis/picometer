@@ -12,7 +12,7 @@ from picometer.shapes import degrees_between, Line, Plane, Shape, Vector3, are_s
 from picometer.utility import ustr2float
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Locator(NamedTuple):
@@ -44,7 +44,9 @@ class AtomSet(Shape):
                  bf: BaseFrame = None,
                  table: pd.DataFrame = None,
                  ) -> None:
-        log.debug(f'Init AtomSet with {bf!r} and {table!r}')
+
+        logger.debug(f'Created atom set with {bf!r} and '
+                     f'{len(table) if table is not None else 0}-element table')
         self.base = bf
         self.table = table
 
@@ -105,7 +107,7 @@ class AtomSet(Shape):
     def locate(self, locators: Sequence[Locator]) -> 'AtomSet':
         """Convenience method to select multiple fragments from locators
         while interpreting and extending groups if necessary"""
-        log.debug(f'Locate {locators} in {self}')
+        logger.debug(f'Locate {locators} in {self}')
         new = AtomSet()
         assert len(locators) == 0 or isinstance(locators[0], Locator)
         for label, symm_op_code, at in locators:
@@ -123,7 +125,7 @@ class AtomSet(Shape):
         mask = self.table.index == label_regex
         if not any(mask):
             mask = self.table.index.str.match(label_regex)
-        log.debug(f'Selected {sum(mask)} atoms with {label_regex=}')
+        logger.debug(f'Selected {sum(mask)} atoms with {label_regex=}')
         return self.__class__(self.base, deepcopy(self.table[mask]))
 
     def transform(self, symm_op_code: str) -> 'AtomSet':

@@ -1,4 +1,6 @@
 from collections import UserDict
+
+import logging
 from typing import Callable, Dict, List, Union
 
 import pandas as pd
@@ -9,10 +11,10 @@ from picometer.instructions import Instruction, Routine
 from picometer.settings import Settings
 
 
-ImplicitInstructionArgument = Union[str, Dict[str, str]]
+logger = logging.getLogger(__name__)
 
 
-def explicit_kwargs(**expected_kwargs: type) -> type:
+def explicit_kwargs(**expected_kwargs: type) -> type:  # TODO RM
     class ExplicitInstructionArgs(UserDict):
         def __init__(self, arg):
             new = {}
@@ -49,7 +51,7 @@ def register_instruction(name: str) -> Callable:
     return decorator
 
 
-@registers_instructions
+@registers_instructions  # TODO RM END
 class Processor:
     """
     This is the main class responsible for controlling, processing,
@@ -66,20 +68,23 @@ class Processor:
         self.settings = Settings.from_yaml()
         if settings:
             self.settings.update(settings)
+        logger.info(f'Initialized processor {self}')
 
     def process(self, instruction: Instruction) -> None:
         handler = instruction.handler(self)
         handler.handle(instruction)
         self.history.append(instruction)
+        logger.info(f'{self} processed {instruction}')
 
 
 def process(routine: Routine) -> Processor:
+    logger.info(f'Bulk-processing {routine}')
     processor = Processor()
     for instruction in routine:
         processor.process(instruction)
     return processor
 
-
+# TODO RM
 if __name__ == '__main__':
     p = Processor()
     print(p.instructions)

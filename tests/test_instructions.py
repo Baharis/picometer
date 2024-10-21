@@ -11,8 +11,9 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from picometer.atom import group_registry, Locator
-from picometer.process import process
 from picometer.instructions import Routine, Instruction
+from picometer.logging import add_file_handler, logger
+from picometer.process import process
 
 
 def get_yaml(file: str, lines: Iterable[int] = None) -> str:
@@ -66,7 +67,7 @@ class TestRoutine(unittest.TestCase):
             routine = Routine.from_yaml(yaml_path)
         self.assertEqual('set', routine[0].keyword)
         self.assertEqual('load', routine[5].keyword)
-        self.assertEqual(len(routine), 81)
+        self.assertEqual(len([r for r in routine if r.keyword != 'set']), 80)
 
     def test_routine_to_yaml(self) -> None:
         with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:

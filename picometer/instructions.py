@@ -9,6 +9,7 @@ and converted into a list of instructions.
 import abc
 from collections import deque
 from copy import deepcopy
+import logging
 from pathlib import Path
 from typing import Any, Union, Protocol
 
@@ -18,6 +19,9 @@ import yaml
 
 from picometer.atom import group_registry, AtomSet, Locator
 from picometer.models import ModelState, ModelStates
+
+
+logger = logging.getLogger(__name__)
 
 
 class Instruction:
@@ -122,6 +126,9 @@ class ProcessorProtocol(Protocol):
     settings: dict[str, Any]
 
 
+# ~~~~~~~~~~~~~~~~~~~ INSTRUCTION REGISTRY AND BASE CLASSES ~~~~~~~~~~~~~~~~~~ #
+
+
 class BaseInstructionHandlerType(type):
     """Metaclass that automatically registers new handlers in `REGISTRY`"""
     REGISTRY = {}
@@ -136,7 +143,7 @@ class BaseInstructionHandlerType(type):
 class BaseInstructionHandler(metaclass=BaseInstructionHandlerType):
     """
     Base `InstructionHandler` class to be used for managing all instructions.
-    Must define the following attrubutes and methods:
+    Must define the following attributes and methods:
     - `name`: if given, auto-registers handler in the REGISTRY
     - `kwargs`: if given, auto-converts string arguments into dict
     - `handle()`: the method called be processor to handle instruction
@@ -158,6 +165,7 @@ class BaseInstructionHandler(metaclass=BaseInstructionHandlerType):
 
     def clear_selection(self):
         self.processor.selection = []
+        logger.info(f'Cleared selection')
 
     def clear_selection_after_use(self) -> None:
         if self.processor.settings.get('clear_selection_after_use'):
@@ -176,6 +184,9 @@ class SerialInstructionHandler(BaseInstructionHandler):
         """Abstract function to handle a process a single model state"""
 
 
+# ~~~~~~~~~~~~~~~~~~~~ CONCRETE INSTRUCTIONS DECLARATIONS ~~~~~~~~~~~~~~~~~~~~ #
+
+
 class LoadInstructionHandler(BaseInstructionHandler):
     name = 'load'
     kwargs = dict(path=str, block=str)
@@ -186,6 +197,7 @@ class LoadInstructionHandler(BaseInstructionHandler):
         atoms = AtomSet.from_cif(cif_path=cif_path, block_name=block_name)
         label = cif_path + (':' + block_name if block_name else '')
         self.processor.model_states[label] = ModelState(atoms=atoms)
+        logger.info(f'Loaded model state {label}')
         if not self.processor.settings['auto_write_unit_cell']:
             return
         self.processor.evaluation_table.loc[label, 'unit_cell_a'] = atoms.base.a_d
@@ -205,6 +217,7 @@ class SelectInstructionHandler(BaseInstructionHandler):
         loc = Locator.from_dict(instruction.kwargs)
         if loc:
             self.processor.selection.append(loc)
+            logger.info(f'Added {loc} to current selection')
         else:
             self.clear_selection()
 
@@ -218,6 +231,7 @@ class RecenterInstructionHandler(BaseInstructionHandler):
         new_locators = [Locator.from_dict(dict(loc._asdict(), at=new_center))
                         for loc in self.processor.selection]
         self.processor.selection = new_locators
+        logger.info(f'Recentered selection, current: {self.processor.selection}')
 
 
 class GroupInstructionHandler(BaseInstructionHandler):
@@ -228,6 +242,7 @@ class GroupInstructionHandler(BaseInstructionHandler):
         group = deepcopy(self.processor.selection)
         label = instruction.kwargs['label']
         group_registry[label] = group
+        logger.info(f'Defined new group {label} from selection {group}')
         self.clear_selection_after_use()
 
 
@@ -242,7 +257,9 @@ class CentroidInstructionHandler(SerialInstructionHandler):
         c_atoms = {'label': [label], 'fract_x': [c_fract[0]],
                    'fract_y': [c_fract[1]], 'fract_z': [c_fract[2]], }
         atoms = pd.DataFrame.from_records(c_atoms).set_index('label')
-        ms.centroids += AtomSet(focus.base, atoms)
+        centroid = AtomSet(focus.base, atoms)
+        ms.centroids += centroid
+        logger.info(f'Defined centroid {label}: {centroid} for model state {ms_key}')
 
 
 class LineInstructionHandler(SerialInstructionHandler):
@@ -252,7 +269,9 @@ class LineInstructionHandler(SerialInstructionHandler):
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         label = instruction.kwargs['label']
         focus = ms.nodes.locate(self.processor.selection)
-        ms.shapes[label] = focus.line
+        line = focus.line
+        ms.shapes[label] = line
+        logger.info(f'Defined line {label}: {line} for model state {ms_key}')
 
 
 class PlaneInstructionsHandler(SerialInstructionHandler):
@@ -262,7 +281,9 @@ class PlaneInstructionsHandler(SerialInstructionHandler):
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         label = instruction.kwargs['label']
         focus = ms.nodes.locate(self.processor.selection)
-        ms.shapes[label] = focus.plane
+        plane = focus.plane
+        ms.shapes[label] = plane
+        logger.info(f'Defined plane {label}: {plane} for model state {ms_key}')
 
 
 class DistanceInstructionHandler(SerialInstructionHandler):
@@ -280,6 +301,7 @@ class DistanceInstructionHandler(SerialInstructionHandler):
         assert len(shapes) == 2
         distance = shapes[0].distance(shapes[1])
         self.processor.evaluation_table.loc[ms_key, label] = distance
+        logger.info(f'Evaluated distance {label}: {distance} for model state {ms_key}')
 
 
 class AngleInstructionHandler(SerialInstructionHandler):
@@ -297,6 +319,7 @@ class AngleInstructionHandler(SerialInstructionHandler):
         assert len(shapes)
         angle = shapes[0].angle(*shapes[1:])
         self.processor.evaluation_table.loc[ms_key, label] = angle
+        logger.info(f'Evaluated angle {label}: {angle} for model state {ms_key}')
 
 
 class WriteInstructionHandler(BaseInstructionHandler):
@@ -306,6 +329,7 @@ class WriteInstructionHandler(BaseInstructionHandler):
     def handle(self, instruction: Instruction) -> None:
         path = instruction.kwargs['path']
         self.processor.evaluation_table.to_csv(path_or_buf=path)
+        logger.info(f'Saved current evaluation table to {path}')
 
 
 class ClearInstructionHandler(BaseInstructionHandler):
@@ -314,6 +338,7 @@ class ClearInstructionHandler(BaseInstructionHandler):
 
     def handle(self, instruction: Instruction) -> None:
         self.processor.__init__()
+        logger.info(f'Reinitialized processor')
 
 
 class SetInstructionHandler(BaseInstructionHandler):

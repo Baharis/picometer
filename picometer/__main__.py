@@ -1,5 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from picometer.instructions import Routine
+from picometer.logging import add_file_handler, logger
 from picometer.process import process
 import sys
 
@@ -20,6 +21,7 @@ def parse_args() -> Namespace:
 def main() -> int:
     args = parse_args()
     if filename := args.filename:
+        add_file_handler('picometer.log')
         routine = Routine.from_yaml(filename)
         process(routine)
     return 0
