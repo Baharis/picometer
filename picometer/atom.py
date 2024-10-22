@@ -51,15 +51,15 @@ class AtomSet(Shape):
         self.base = bf
         self.table = table
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.table) if self.table is not None else 0
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'AtomSet':
         if not (self.base or self.table):
             return other
         elif not (other.base or other.table):
             return self
-        return AtomSet(self.base, pd.concat([self.table, other.table], axis=0))
+        return self.__class__(self.base, pd.concat([self.table, other.table], axis=0))
 
     def __getitem__(self, item) -> 'AtomSet':
         return self.__class__(bf=self.base, table=self.table[item])
@@ -91,11 +91,11 @@ class AtomSet(Shape):
         return AtomSet(bf, atoms)
 
     @property
-    def fract_xyz(self):
+    def fract_xyz(self) -> np.ndarray:
         return np.vstack([self.table['fract_' + k].to_numpy() for k in 'xyz'])
 
     @property
-    def cart_xyz(self):
+    def cart_xyz(self) -> np.ndarray:
         return self.orthogonalise(self.fract_xyz)
 
     def fractionalise(self, cart_xyz: np.ndarray) -> np.ndarray:
@@ -140,7 +140,7 @@ class AtomSet(Shape):
         return self.__class__(self.base, data)
 
     @property
-    def centroid(self):
+    def centroid(self) -> np.ndarray:
         """A 3-vector with average atom position."""
         return self.cart_xyz.T.mean(axis=0)
 
@@ -169,7 +169,7 @@ class AtomSet(Shape):
         return self.centroid
 
     @origin.setter
-    def origin(self, new_origin):
+    def origin(self, new_origin) -> None:
         """Change origin to the new one provided in cartesian coordinates"""
         new_origin_fract = self.fractionalise(new_origin)
         delta = new_origin_fract - self.fractionalise(self.centroid)
@@ -202,7 +202,7 @@ class AtomSet(Shape):
             along = np.abs(np.dot(deltas, other.direction))
             return min(norms ** 2 - along ** 2)
 
-    def dihedral(self, *others: 'AtomSet'):
+    def dihedral(self, *others: 'AtomSet') -> float:
         assert all(o.kind is o.Kind.spatial for o in [self, *others])
         combined = sum(others, self)
         xyz = combined.cart_xyz.T

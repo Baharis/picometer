@@ -30,11 +30,11 @@ def add_file_handler(path: Union[str, Path]) -> logging.FileHandler:
 
 class LogEventHandler(logging.Handler):
     """Custom handler for external log processing, see `register_log_listener`"""
-    def __init__(self, log_callback):
+    def __init__(self, log_callback) -> None:
         super().__init__()
         self.log_callback = log_callback  # A callback to process log events
 
-    def emit(self, record):
+    def emit(self, record) -> None:
         log_entry = self.format(record)
         self.log_callback(log_entry)  # Send log entry to the callback
 

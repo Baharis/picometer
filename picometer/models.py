@@ -19,7 +19,7 @@ class ModelState:
         logger.debug(f'Initialized {self}')
 
     @property
-    def nodes(self):
+    def nodes(self) -> AtomSet:
         return self.atoms + self.centroids
 
 
