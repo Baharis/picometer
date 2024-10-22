@@ -1,4 +1,5 @@
 settings:
+  auto_write_unit_cell: False
   clear_selection_after_use: True
 instructions:
   - load: $ferrocene1  # tests will substitute it with ./ferrocene1.cif
@@ -79,5 +80,5 @@ instructions:
   - select: C(12)
   - select: C(13)
   - select: C(14)
-  - angle: C(11)-C(12)-C(13)-C(14)
+  - dihedral: C(11)-C(12)-C(13)-C(14)
   - write: $ferrocene_results  # tests will substitute it with ./ferrocene_results.csv

@@ -122,8 +122,8 @@ The following instructions are currently supported by picometer:
 - **Evaluation instructions**
   - measure `distance` between 2 selected objects; if the selection includes
     groups of atoms, measure closes distance to the group of atoms.
-  - measure `angle` between 2–6 selected objects; if the selection includes
-    (ordered) atoms, calculate direct or dihedral angle between presumed bonds.
+  - measure `angle` between 2–3 selected objects: planes, lines, or (ordered) atoms.
+  - measure `dihedral` andle between 4 individually-selected ordered centroids/atoms.
 
 
 ## Contributing

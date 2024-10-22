@@ -1,9 +1,13 @@
 from collections import UserDict
 from dataclasses import asdict, dataclass, fields, Field
 from importlib import resources
+import logging
 from typing import Union
 
 import yaml
+
+
+logger = logging.getLogger(__name__)
 
 
 class SettingsError(KeyError):
@@ -13,6 +17,7 @@ class SettingsError(KeyError):
 @dataclass
 class DefaultSettings:
     """Store default values of all settings. Use `AnyValue` if no default."""
+    auto_write_unit_cell: bool = True
     clear_selection_after_use: bool = True
 
     @classmethod
@@ -36,14 +41,17 @@ class Settings(UserDict):
         super().__init__(asdict(DefaultSettings()))  # noqa
         if data:
             self.update(data)
+        logger.debug(f'Initialized {self}')
 
     def __setitem__(self, key, value, /) -> None:
         field = DefaultSettings.get_field(key)
-        super().__setitem__(key, field.type(value))
+        super().__setitem__(key, value := field.type(value))
+        logger.debug(f'Changed setting {key} to {value}')
 
     def __delitem__(self, key, /) -> None:
         field = DefaultSettings.get_field(key)
-        super().__setitem__(key, field.default)
+        super().__setitem__(key, default := field.default)
+        logger.debug(f'Reset setting {key} to {default}')
 
     def update(self, other: Union[dict, UserDict] = None, /, **kwargs) -> None:
         other = {**other, **kwargs} if other else kwargs

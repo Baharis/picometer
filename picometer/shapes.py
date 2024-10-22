@@ -9,7 +9,7 @@ import numpy.typing as npt
 from numpy.linalg import norm
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 Vector3 = Annotated[npt.NDArray[float], Literal[3]]
@@ -91,7 +91,7 @@ class Shape:
         assert isinstance(self, Shape) and isinstance(other, Shape)
         if not self.kind.value >= other.kind.value:  # let self.kind >= other
             return other.distance(self)
-        log.debug(f'Calculating distance between {self} and {other}')
+        logger.debug(f'Calculating distance between {self} and {other}')
         return self._distance(other)  # delegate to concrete implementation
 
     @abc.abstractmethod
@@ -104,7 +104,7 @@ class Shape:
         For Explicit shape, accept two parameters; for AtomSets, any size.
         """
         assert all(isinstance(o, Shape) for o in [self, *others])
-        log.debug(f'Calculating angle between {self} and {others}')
+        logger.debug(f'Calculating angle between {self} and {others}')
         return self._angle(*others)  # delegate to concrete implementation
 
 

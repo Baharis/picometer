@@ -8,11 +8,12 @@ import numpy as np
 from numpy.linalg import norm
 import pandas as pd
 
-from picometer.shapes import degrees_between, Line, Plane, Shape, Vector3, are_synparallel
+from picometer.shapes import (are_synparallel, degrees_between, Line,
+                              Plane, Shape, Vector3)
 from picometer.utility import ustr2float
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Locator(NamedTuple):
@@ -29,7 +30,7 @@ class Locator(NamedTuple):
                        at=at if at else None)
 
     def __bool__(self):
-        return self.label and self.label != 'None'
+        return self.label is not None
 
 
 group_registry: Dict[str, List[Locator]] = {}
@@ -44,25 +45,28 @@ class AtomSet(Shape):
                  bf: BaseFrame = None,
                  table: pd.DataFrame = None,
                  ) -> None:
-        log.debug(f'Init AtomSet with {bf!r} and {table!r}')
+
+        logger.debug(f'Created atom set with {bf!r} and '
+                     f'{len(table) if table is not None else 0}-element table')
         self.base = bf
         self.table = table
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.table) if self.table is not None else 0
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'AtomSet':
         if not (self.base or self.table):
             return other
         elif not (other.base or other.table):
             return self
-        return AtomSet(self.base, pd.concat([self.table, other.table], axis=0))
+        return self.__class__(self.base, pd.concat([self.table, other.table], axis=0))
 
     def __getitem__(self, item) -> 'AtomSet':
         return self.__class__(bf=self.base, table=self.table[item])
 
     @classmethod
     def from_cif(cls, cif_path: str, block_name: str = None) -> 'AtomSet':
+        """Initialize from cif file using hikari's `BaseFrame` and `CifFrame`"""
         bf = BaseFrame()
         cf = CifFrame()
         cf.read(cif_path)
@@ -87,11 +91,11 @@ class AtomSet(Shape):
         return AtomSet(bf, atoms)
 
     @property
-    def fract_xyz(self):
+    def fract_xyz(self) -> np.ndarray:
         return np.vstack([self.table['fract_' + k].to_numpy() for k in 'xyz'])
 
     @property
-    def cart_xyz(self):
+    def cart_xyz(self) -> np.ndarray:
         return self.orthogonalise(self.fract_xyz)
 
     def fractionalise(self, cart_xyz: np.ndarray) -> np.ndarray:
@@ -105,7 +109,7 @@ class AtomSet(Shape):
     def locate(self, locators: Sequence[Locator]) -> 'AtomSet':
         """Convenience method to select multiple fragments from locators
         while interpreting and extending groups if necessary"""
-        log.debug(f'Locate {locators} in {self}')
+        logger.debug(f'Locate {locators} in {self}')
         new = AtomSet()
         assert len(locators) == 0 or isinstance(locators[0], Locator)
         for label, symm_op_code, at in locators:
@@ -121,9 +125,9 @@ class AtomSet(Shape):
 
     def select_atom(self, label_regex: str) -> 'AtomSet':
         mask = self.table.index == label_regex
-        if not any(mask):
+        if not any(mask):  # noqa: mask will in fact be Iterable
             mask = self.table.index.str.match(label_regex)
-        log.debug(f'Selected {sum(mask)} atoms with {label_regex=}')
+        logger.debug(f'Selected {sum(mask)} atoms with {label_regex=}')
         return self.__class__(self.base, deepcopy(self.table[mask]))
 
     def transform(self, symm_op_code: str) -> 'AtomSet':
@@ -136,7 +140,7 @@ class AtomSet(Shape):
         return self.__class__(self.base, data)
 
     @property
-    def centroid(self):
+    def centroid(self) -> np.ndarray:
         """A 3-vector with average atom position."""
         return self.cart_xyz.T.mean(axis=0)
 
@@ -165,7 +169,7 @@ class AtomSet(Shape):
         return self.centroid
 
     @origin.setter
-    def origin(self, new_origin):
+    def origin(self, new_origin) -> None:
         """Change origin to the new one provided in cartesian coordinates"""
         new_origin_fract = self.fractionalise(new_origin)
         delta = new_origin_fract - self.fractionalise(self.centroid)
@@ -178,16 +182,8 @@ class AtomSet(Shape):
         assert all(o.kind is o.Kind.spatial for o in [self, *others])
         combined = sum(others, self)
         xyz = combined.cart_xyz.T
-        if len(combined) == 3:  # interior angle
-            return degrees_between(xyz[0] - xyz[1], xyz[2] - xyz[1])
-        elif 4 <= len(combined) <= 6:  # dihedral angle
-            plane1_dir = np.cross(xyz[0] - xyz[1], xyz[2] - xyz[1])
-            plane2_dir = np.cross(xyz[-3] - xyz[-2], xyz[-1] - xyz[-2])
-            twist_dir = np.cross(plane1_dir, plane2_dir)
-            sign = +1 if are_synparallel(twist_dir, xyz[2] - xyz[1]) else -1
-            return sign * degrees_between(plane1_dir, plane2_dir, normalize=False)
-        else:
-            return 'Input AtomSet must contain between 3 and 6 atoms'
+        assert len(combined) == 3, 'Input AtomSet must contain exactly 3 atoms'
+        return degrees_between(xyz[0] - xyz[1], xyz[2] - xyz[1])
 
     def _distance(self, other: 'Shape') -> float:
         if other.kind is self.Kind.spatial:
@@ -205,3 +201,14 @@ class AtomSet(Shape):
             norms = norm(deltas, axis=1)
             along = np.abs(np.dot(deltas, other.direction))
             return min(norms ** 2 - along ** 2)
+
+    def dihedral(self, *others: 'AtomSet') -> float:
+        assert all(o.kind is o.Kind.spatial for o in [self, *others])
+        combined = sum(others, self)
+        xyz = combined.cart_xyz.T
+        assert len(combined) == 4, 'Input AtomSet must contain exactly 4 atoms'
+        plane1_dir = np.cross(xyz[0] - xyz[1], xyz[2] - xyz[1])
+        plane2_dir = np.cross(xyz[-3] - xyz[-2], xyz[-1] - xyz[-2])
+        twist_dir = np.cross(plane1_dir, plane2_dir)
+        sign = +1 if are_synparallel(twist_dir, xyz[2] - xyz[1]) else -1
+        return sign * degrees_between(plane1_dir, plane2_dir, normalize=False)
