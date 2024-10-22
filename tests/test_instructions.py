@@ -117,10 +117,20 @@ class TestSettingInstructions(unittest.TestCase):
     def setUp(self) -> None:
         self.routine_text = self.routine_prefix
 
-    def test_load(self):
+    def test_load_single(self):
         p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             self.assertEqual(ms.atoms.table.loc['Fe', 'fract_x'], 0.0)
+
+    def test_load_grep(self):
+        routine2_text = get_yaml('test_instructions.yaml', lines=range(2))
+        routine2_text = routine2_text.replace('ferrocene1', 'ferrocene*')
+        p1 = process(Routine.from_string(self.routine_text))
+        p2 = process(Routine.from_string(routine2_text))
+        for (ms_key1, ms1), (ms_key2, ms2) in zip(p1.model_states.items(),
+                                                  p2.model_states.items()):
+            self.assertEqual(ms_key1, ms_key2)
+            self.assertTrue(ms1.atoms.table.equals(ms2.atoms.table))
 
     def test_select_atom(self) -> None:
         self.routine_text += '  - select: Fe\n'

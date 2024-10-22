@@ -9,6 +9,7 @@ and converted into a list of instructions.
 import abc
 from collections import deque
 from copy import deepcopy
+from glob import glob
 import logging
 from pathlib import Path
 from typing import Any, Union, Protocol
@@ -206,6 +207,13 @@ class LoadInstructionHandler(BaseInstructionHandler):
     def handle(self, instruction: Instruction) -> None:
         cif_path = instruction.kwargs['path']
         block_name = instruction.kwargs['block']
+        if Path(cif_path).is_file():
+            self._load_model_state(cif_path, block_name)
+        else:
+            for cif_path in sorted(glob(cif_path)):
+                self._load_model_state(cif_path, block_name)
+
+    def _load_model_state(self, cif_path, block_name):
         atoms = AtomSet.from_cif(cif_path=cif_path, block_name=block_name)
         label = cif_path + (':' + block_name if block_name else '')
         self.processor.model_states[label] = ModelState(atoms=atoms)

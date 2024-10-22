@@ -212,4 +212,3 @@ class AtomSet(Shape):
         twist_dir = np.cross(plane1_dir, plane2_dir)
         sign = +1 if are_synparallel(twist_dir, xyz[2] - xyz[1]) else -1
         return sign * degrees_between(plane1_dir, plane2_dir, normalize=False)
-
