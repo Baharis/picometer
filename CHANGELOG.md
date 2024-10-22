@@ -1,6 +1,43 @@
 # CHANGELOG
 
 
+## v0.2.0 (2024-10-22)
+
+### :sparkles:
+
+* :sparkles: .cif files can now be loaded using glob ([`86866a0`](https://github.com/Baharis/picometer/commit/86866a0147cd90dc3eb1b4777a5d3d910142e14c))
+
+* :sparkles: Dihedral angles are now handled explicitly via 'dihedral' keyword/handler. ([`9364084`](https://github.com/Baharis/picometer/commit/9364084386d97365ce8a452d349430dc83a5b7c2))
+
+* :sparkles: Add logging, used by `__main__` or when `add_file_handler` is called ([`49e8a82`](https://github.com/Baharis/picometer/commit/49e8a82609b4a98728c514733b008995fb04814e))
+
+* :sparkles: `auto_write_unit_cell` when reading cell, add corresponding setting (default True) ([`7cf85f0`](https://github.com/Baharis/picometer/commit/7cf85f01472f0a7a88832386f11a7122fadac136))
+
+* :sparkles: Add option and tests to save routine history ([`8bd79ec`](https://github.com/Baharis/picometer/commit/8bd79ec40ff218ef7a038cdc37e88513de175395))
+
+* :sparkles: `Routine`s can be now saved in a yaml file by converting `Instructions` back to `dict`s ([`541a328`](https://github.com/Baharis/picometer/commit/541a328d7ded6ea585d3ce524ea893b3dc3077a6))
+
+### Other
+
+* Merge pull request #5 from Baharis/development
+
+:sparkles: Improve `Routine`, `load`ing, add logging, fix dihedral handling ([`63d0810`](https://github.com/Baharis/picometer/commit/63d081097275cb851bbd4d6f72cdaa158cbc6280))
+
+* :memo: Add missing type hints ([`d6cfe05`](https://github.com/Baharis/picometer/commit/d6cfe053e1e75af59a23c171d6f5125d4687a7ec))
+
+* :white_check_mark: Fix logging tests where closing file in temp dir removes it ([`85e04e2`](https://github.com/Baharis/picometer/commit/85e04e2a6ea1f5f165747dbb6bbe99eae8555a7f))
+
+* :memo: Update docstrings ([`15d0ccf`](https://github.com/Baharis/picometer/commit/15d0ccf91f98d73f2245baca32226a3f222dd880))
+
+* :rotating_light: Fix flake8 linting issues, mostly with `instructions.py` ([`bdf203e`](https://github.com/Baharis/picometer/commit/bdf203ee1d35f6c107d9a53c3c9490324df82ceb))
+
+* :coffin: Remove unused process method registration decorators, main ([`17ae683`](https://github.com/Baharis/picometer/commit/17ae68361d07f959135082b3d25ad06641dc199c))
+
+* :fire: Clean newly unused code, imports ([`a224000`](https://github.com/Baharis/picometer/commit/a2240004b06a2aa820cebeb65da9f1ecddcf1734))
+
+* :recycle: Generalize, make OOM code responsible for handling instructions ([`e0fa239`](https://github.com/Baharis/picometer/commit/e0fa239cd4ed22bcf515f4730abad8549aa15620))
+
+
 ## v0.1.3 (2024-10-16)
 
 ### :bug:
