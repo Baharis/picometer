@@ -295,6 +295,9 @@ class TestMeasuringInstructions(unittest.TestCase):
         results = p.evaluation_table['C(11)_Uiso'].to_numpy()
         self.assertEqual(results[0], 0.02)
         np.testing.assert_equal(results[1], np.nan)
+        results = p.evaluation_table['C(11)_U11'].to_numpy()
+        self.assertEqual(results[1], 0.02)
+        np.testing.assert_equal(results[0], np.nan)
 
     def test_distance_plane_plane(self):
         self.routine_text += '  - select: cp_A_plane\n'
