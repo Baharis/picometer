@@ -7,6 +7,7 @@ from typing import Iterable
 import unittest
 
 import numpy as np
+import pandas
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
@@ -262,6 +263,18 @@ class TestMeasuringInstructions(unittest.TestCase):
 
     def setUp(self) -> None:
         self.routine_text = self.routine_prefix
+
+    def test_coordinates(self):
+        self.routine_text += '  - select: cp_A\n'
+        self.routine_text += '  - coordinates\n'
+        p = process(Routine.from_string(self.routine_text))
+        results = p.evaluation_table['C(11)_y'].to_numpy()
+        correct = np.array([0.2623, 0.2612, 0.2662, 0.2622, 0.2624, 0.2615])
+        self.assertTrue(np.allclose(results, correct))
+        results = p.evaluation_table['C(21)_y'].to_numpy()
+        correct = np.array([0.2576, 0.2583, 0.2654, 0.258])
+        np.testing.assert_equal(results[0], np.nan)
+        self.assertTrue(np.allclose(results[2:], correct))
 
     def test_distance_plane_plane(self):
         self.routine_text += '  - select: cp_A_plane\n'
