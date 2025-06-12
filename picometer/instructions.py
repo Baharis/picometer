@@ -320,6 +320,21 @@ class CoordinatesInstructionHandler(SerialInstructionHandler):
         logger.info(f'Noted coordinates for current selection in model state {ms_key}')
 
 
+class DisplacementInstructionHandler(SerialInstructionHandler):
+    name = 'displacement'
+    kwargs = None
+
+    def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
+        focus = ms.nodes.locate(self.processor.selection)
+        for label, displacements in focus.table.iterrows():
+            for suffix in 'Uiso U11 U22 U33 U23 U13 U12'.split():
+                label_ = label + '_' + suffix
+                value = getattr(displacements, suffix, None)
+                if value is not None:
+                    self.processor.evaluation_table.loc[ms_key, label_] = value
+        logger.info(f'Noted displacement for current selection in model state {ms_key}')
+
+
 class DistanceInstructionHandler(SerialInstructionHandler):
     name = 'distance'
     kwargs = dict(label=str)
