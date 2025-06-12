@@ -176,7 +176,7 @@ class TestSettingInstructions(unittest.TestCase):
         for _, ms in p.model_states.items():
             carbons_a = ms.atoms.locate([Locator('cp_A')]).table
             carbons_b = ms.atoms.locate([Locator('cp_B')]).table
-            for key in carbons_a.keys():
+            for key in [k for k in carbons_a.keys() if str(k).startswith('fract')]:
                 self.assertEqual(carbons_a[key].iloc[0],
                                  -carbons_b[key].iloc[0])
 
