@@ -287,8 +287,14 @@ class TestMeasuringInstructions(unittest.TestCase):
         t2 = process(Routine.from_string(self.routine_text)).evaluation_table
         self.assertEqual(t1.shape, t2.shape)
         self.assertTrue(t1.equals(t2[t1.keys()]))
-        pd.options.display.max_rows = None
-        pd.options.display.width = None
+
+    def test_displacement(self):
+        self.routine_text += '  - select: cp_A\n'
+        self.routine_text += '  - displacement\n'
+        p = process(Routine.from_string(self.routine_text))
+        results = p.evaluation_table['C(11)_Uiso'].to_numpy()
+        self.assertEqual(results[0], 0.02)
+        np.testing.assert_equal(results[1], np.nan)
 
     def test_distance_plane_plane(self):
         self.routine_text += '  - select: cp_A_plane\n'
