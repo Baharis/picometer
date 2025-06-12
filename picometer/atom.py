@@ -90,6 +90,19 @@ class AtomSet(Shape):
                 'fract_y': [ustr2float(v) for v in cb['_atom_site_fract_y']],
                 'fract_z': [ustr2float(v) for v in cb['_atom_site_fract_z']],
             }
+            try:
+                atoms_dict['Uiso'] = [ustr2float(v) for v in cb['_atom_site_U_iso_or_equiv']]
+            except KeyError:
+                pass
+            try:
+                atoms_dict['U11'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_11']]
+                atoms_dict['U22'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_22']]
+                atoms_dict['U33'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_33']]
+                atoms_dict['U23'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_23']]
+                atoms_dict['U13'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_13']]
+                atoms_dict['U12'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_12']]
+            except KeyError:
+                pass
             atoms = pd.DataFrame.from_records(atoms_dict).set_index('label')
         except KeyError:
             atoms = pd.DataFrame()
