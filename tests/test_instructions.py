@@ -7,6 +7,7 @@ from typing import Iterable
 import unittest
 
 import numpy as np
+import pandas
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
@@ -175,7 +176,7 @@ class TestSettingInstructions(unittest.TestCase):
         for _, ms in p.model_states.items():
             carbons_a = ms.atoms.locate([Locator('cp_A')]).table
             carbons_b = ms.atoms.locate([Locator('cp_B')]).table
-            for key in carbons_a.keys():
+            for key in [k for k in carbons_a.keys() if str(k).startswith('fract')]:
                 self.assertEqual(carbons_a[key].iloc[0],
                                  -carbons_b[key].iloc[0])
 
@@ -262,6 +263,41 @@ class TestMeasuringInstructions(unittest.TestCase):
 
     def setUp(self) -> None:
         self.routine_text = self.routine_prefix
+
+    def test_coordinates(self):
+        self.routine_text += '  - select: cp_A\n'
+        self.routine_text += '  - coordinates\n'
+        p = process(Routine.from_string(self.routine_text))
+        results = p.evaluation_table['C(11)_y'].to_numpy()
+        correct = np.array([0.2623, 0.2612, 0.2662, 0.2622, 0.2624, 0.2615])
+        self.assertTrue(np.allclose(results, correct))
+        results = p.evaluation_table['C(21)_y'].to_numpy()
+        correct = np.array([0.2576, 0.2583, 0.2654, 0.258])
+        np.testing.assert_equal(results[0], np.nan)
+        self.assertTrue(np.allclose(results[2:], correct))
+
+    @unittest.expectedFailure
+    def test_coordinates2(self):
+        """Known failure: coordinates of atoms with the same name are overwritten"""
+        self.routine_text += '  - select: cp_A\n'
+        self.routine_text += '  - coordinates\n'
+        t1 = process(Routine.from_string(self.routine_text)).evaluation_table
+        self.routine_text += '  - select: cp_B\n'
+        self.routine_text += '  - coordinates\n'
+        t2 = process(Routine.from_string(self.routine_text)).evaluation_table
+        self.assertEqual(t1.shape, t2.shape)
+        self.assertTrue(t1.equals(t2[t1.keys()]))
+
+    def test_displacement(self):
+        self.routine_text += '  - select: cp_A\n'
+        self.routine_text += '  - displacement\n'
+        p = process(Routine.from_string(self.routine_text))
+        results = p.evaluation_table['C(11)_Uiso'].to_numpy()
+        self.assertEqual(results[0], 0.02)
+        np.testing.assert_equal(results[1], np.nan)
+        results = p.evaluation_table['C(11)_U11'].to_numpy()
+        self.assertEqual(results[1], 0.02)
+        np.testing.assert_equal(results[0], np.nan)
 
     def test_distance_plane_plane(self):
         self.routine_text += '  - select: cp_A_plane\n'

@@ -2,15 +2,20 @@ from copy import deepcopy
 import logging
 from typing import Dict, NamedTuple, List, Sequence
 
-import hikari.symmetry
 from hikari.dataframes import BaseFrame, CifFrame
-import numpy as np
 from numpy.linalg import norm
+import numpy as np
 import pandas as pd
 
 from picometer.shapes import (are_synparallel, degrees_between, Line,
                               Plane, Shape, Vector3)
 from picometer.utility import ustr2float
+
+
+try:
+    from hikari.symmetry import Operation
+except ImportError:  # hikari version < 0.3.0
+    from hikari.symmetry import SymmOp as Operation
 
 
 logger = logging.getLogger(__name__)
@@ -85,6 +90,19 @@ class AtomSet(Shape):
                 'fract_y': [ustr2float(v) for v in cb['_atom_site_fract_y']],
                 'fract_z': [ustr2float(v) for v in cb['_atom_site_fract_z']],
             }
+            try:
+                atoms_dict['Uiso'] = [ustr2float(v) for v in cb['_atom_site_U_iso_or_equiv']]
+            except KeyError:
+                pass
+            try:
+                atoms_dict['U11'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_11']]
+                atoms_dict['U22'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_22']]
+                atoms_dict['U33'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_33']]
+                atoms_dict['U23'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_23']]
+                atoms_dict['U13'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_13']]
+                atoms_dict['U12'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_12']]
+            except KeyError:
+                pass
             atoms = pd.DataFrame.from_records(atoms_dict).set_index('label')
         except KeyError:
             atoms = pd.DataFrame()
@@ -131,7 +149,7 @@ class AtomSet(Shape):
         return self.__class__(self.base, deepcopy(self.table[mask]))
 
     def transform(self, symm_op_code: str) -> 'AtomSet':
-        symm_op = hikari.symmetry.SymmOp.from_code(symm_op_code)
+        symm_op = Operation.from_code(symm_op_code)
         fract_xyz = symm_op.transform(self.fract_xyz.T)
         data = deepcopy(self.table)
         data['fract_x'] = fract_xyz[:, 0]
