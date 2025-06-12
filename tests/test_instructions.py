@@ -276,6 +276,20 @@ class TestMeasuringInstructions(unittest.TestCase):
         np.testing.assert_equal(results[0], np.nan)
         self.assertTrue(np.allclose(results[2:], correct))
 
+    @unittest.expectedFailure
+    def test_coordinates2(self):
+        """Known failure: coordinates of atoms with the same name are overwritten"""
+        self.routine_text += '  - select: cp_A\n'
+        self.routine_text += '  - coordinates\n'
+        t1 = process(Routine.from_string(self.routine_text)).evaluation_table
+        self.routine_text += '  - select: cp_B\n'
+        self.routine_text += '  - coordinates\n'
+        t2 = process(Routine.from_string(self.routine_text)).evaluation_table
+        self.assertEqual(t1.shape, t2.shape)
+        self.assertTrue(t1.equals(t2[t1.keys()]))
+        pd.options.display.max_rows = None
+        pd.options.display.width = None
+
     def test_distance_plane_plane(self):
         self.routine_text += '  - select: cp_A_plane\n'
         self.routine_text += '  - select: cp_B_plane\n'
