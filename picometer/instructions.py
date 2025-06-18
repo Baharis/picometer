@@ -326,6 +326,7 @@ class DisplacementInstructionHandler(SerialInstructionHandler):
 
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         focus = ms.nodes.locate(self.processor.selection)
+        assert len(focus) > 0
         for label, displacements in focus.table.iterrows():
             for suffix in 'Uiso U11 U22 U33 U23 U13 U12'.split():
                 label_ = label + '_' + suffix
