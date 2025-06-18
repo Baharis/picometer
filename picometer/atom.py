@@ -9,7 +9,7 @@ import pandas as pd
 
 from picometer.shapes import (are_synparallel, degrees_between, Line,
                               Plane, Shape, Vector3)
-from picometer.utility import ustr2float
+from picometer.utility import ustr2float, ustr2floats
 
 
 try:
@@ -83,29 +83,32 @@ class AtomSet(Shape):
                      al=ustr2float(cb['_cell_angle_alpha']),
                      be=ustr2float(cb['_cell_angle_beta']),
                      ga=ustr2float(cb['_cell_angle_gamma']))
-        try:
-            atoms_dict = {
-                'label': cb['_atom_site_label'],
-                'fract_x': [ustr2float(v) for v in cb['_atom_site_fract_x']],
-                'fract_y': [ustr2float(v) for v in cb['_atom_site_fract_y']],
-                'fract_z': [ustr2float(v) for v in cb['_atom_site_fract_z']],
-            }
-            try:
-                atoms_dict['Uiso'] = [ustr2float(v) for v in cb['_atom_site_U_iso_or_equiv']]
-            except KeyError:
-                pass
-            try:
-                atoms_dict['U11'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_11']]
-                atoms_dict['U22'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_22']]
-                atoms_dict['U33'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_33']]
-                atoms_dict['U23'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_23']]
-                atoms_dict['U13'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_13']]
-                atoms_dict['U12'] = [ustr2float(v) for v in cb['_atom_site_aniso_U_12']]
-            except KeyError:
-                pass
-            atoms = pd.DataFrame.from_records(atoms_dict).set_index('label')
-        except KeyError:
-            atoms = pd.DataFrame()
+
+        atoms = pd.DataFrame()
+
+        atom_labels = cb.get('_atom_site_label', [])
+        atom_xs = ustr2floats(cb.get('_atom_site_fract_x', []))
+        atom_ys = ustr2floats(cb.get('_atom_site_fract_y', []))
+        atom_zs = ustr2floats(cb.get('_atom_site_fract_z', []))
+        atom_u_isos = ustr2floats(cb.get('_atom_site_U_iso_or_equiv', []))
+        for label, x, y, z in zip(atom_labels, atom_xs, atom_ys, atom_zs):
+            atoms.loc[label, ['fract_x', 'fract_y', 'fract_z']] = [x, y, z]
+        for label, u_iso in zip(atom_labels, atom_u_isos):
+            atoms.loc[label, 'Uiso'] = u_iso
+
+        atom_labels = cb.get('_atom_site_aniso_label', [])
+        atom_u11s = ustr2floats(cb.get('_atom_site_aniso_U_11', []))
+        atom_u22s = ustr2floats(cb.get('_atom_site_aniso_U_22', []))
+        atom_u33s = ustr2floats(cb.get('_atom_site_aniso_U_33', []))
+        atom_u12s = ustr2floats(cb.get('_atom_site_aniso_U_12', []))
+        atom_u13s = ustr2floats(cb.get('_atom_site_aniso_U_13', []))
+        atom_u23s = ustr2floats(cb.get('_atom_site_aniso_U_23', []))
+        atom_us = zip(atom_u11s, atom_u22s, atom_u33s, atom_u12s, atom_u13s, atom_u23s)
+        for label, us in zip(atom_labels, atom_us):
+            atoms.loc[label, ['U11', 'U22', 'U33', 'U12', 'U13', 'U23']] = list(us)
+
+        for col in atoms.columns:
+            atoms[col] = pd.to_numeric(atoms[col], errors='coerce')
         return AtomSet(bf, atoms)
 
     @property
