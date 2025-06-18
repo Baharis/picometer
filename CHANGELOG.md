@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v0.3.1 (2025-06-18)
+
+### :bug:
+
+- :bug: Allow reading ADPs if they are present only for some of the atoms
+  ([`bf29368`](https://github.com/Baharis/picometer/commit/bf2936864ebb7849d3b5bce3f711e3678b76c691))
+
+### Other
+
+- :white_check_mark: Reading from cif should work even if not all atoms are in `aniso` table
+  ([`17ec964`](https://github.com/Baharis/picometer/commit/17ec964f9ed0ab3d0fc410909611bbb43487f1a9))
+
+- 🔀 Merge pull request #7 from Baharis/development
+  ([`f767f71`](https://github.com/Baharis/picometer/commit/f767f716384d95452b0b2fc6bf9b931f4e6bebb7))
+
+:bug: Allow reading ADPs if they are present only for some of the atoms
+
+
 ## v0.3.0 (2025-06-12)
 
 ### :bug:
