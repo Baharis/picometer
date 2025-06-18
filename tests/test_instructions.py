@@ -299,6 +299,30 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.assertEqual(results[1], 0.02)
         np.testing.assert_equal(results[0], np.nan)
 
+    def test_displacement_complete_uiso_from_umatrix(self):
+        r = 'settings:  \n  complete_uiso_from_umatrix: True\n' + self.routine_text
+        r += '  - select: C(11)\n  - displacement\n'
+        p = process(Routine.from_string(r))
+        results = p.evaluation_table['C(11)_Uiso'].to_numpy()
+        self.assertEqual(results[0], 0.02)
+        self.assertEqual(results[1], 0.02)
+        np.testing.assert_equal(results[2], np.nan)
+        np.testing.assert_equal(results[3], np.nan)
+        np.testing.assert_equal(results[4], np.nan)
+        np.testing.assert_equal(results[5], np.nan)
+
+    def test_displacement_complete_umatrix_from_Uiso(self):
+        r = 'settings:  \n  complete_umatrix_from_uiso: True\n' + self.routine_text
+        r += '  - select: C(11)\n  - displacement\n'
+        p = process(Routine.from_string(r))
+        results = p.evaluation_table['C(11)_U13'].to_numpy()
+        self.assertAlmostEqual(results[0], 0.010286, places=6)
+        self.assertAlmostEqual(results[0], 0.010286, places=6)
+        np.testing.assert_equal(results[2], np.nan)
+        np.testing.assert_equal(results[3], np.nan)
+        np.testing.assert_equal(results[4], np.nan)
+        np.testing.assert_equal(results[5], np.nan)
+
     def test_distance_plane_plane(self):
         self.routine_text += '  - select: cp_A_plane\n'
         self.routine_text += '  - select: cp_B_plane\n'
