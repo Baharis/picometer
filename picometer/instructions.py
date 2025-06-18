@@ -240,9 +240,10 @@ class LoadInstructionHandler(BaseInstructionHandler):
                 n_inv = np.linalg.inv(n_mat)
                 u_star = (m := np.linalg.inv(atoms.base.A_d.T)) @ m.T
                 u_cif = n_inv @ u_star @ n_inv.T
-                for label in atoms.table.index[mask1 & mask2]:
-                    u_atom = atoms.table.at[label, 'Uiso'] * u_cif
-                    atoms.table.loc[label, u_columns] = u_atom[np.triu_indices(3)]
+                for atom_label in atoms.table.index[mask1 & mask2]:
+                    u_atom = atoms.table.at[atom_label, 'Uiso'] * u_cif
+                    atoms.table.loc[atom_label, u_columns] = u_atom[np.triu_indices(3)]
+                print(atoms.table)
 
         if not self.processor.settings['auto_write_unit_cell']:
             return
