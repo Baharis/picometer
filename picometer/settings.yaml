@@ -1,3 +1,4 @@
 settings:
   auto_write_unit_cell: True
   clear_selection_after_use: True
+  complete_uiso_from_umatrix: False

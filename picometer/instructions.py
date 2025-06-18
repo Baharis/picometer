@@ -218,6 +218,11 @@ class LoadInstructionHandler(BaseInstructionHandler):
         label = cif_path + (':' + block_name if block_name else '')
         self.processor.model_states[label] = ModelState(atoms=atoms)
         logger.info(f'Loaded model state {label}')
+        if self.processor.settings['complete_uiso_from_umatrix']:
+            if 'U_iso' not in atoms.table.columns:
+                atoms.table['U_iso'] = pd.NA
+            u_equiv = atoms.table[['U_11', 'U_22', 'U_33']].mean(axis=1)
+            atoms.table['U_iso'].fillna(u_equiv, inplace=True)
         if not self.processor.settings['auto_write_unit_cell']:
             return
         et = self.processor.evaluation_table
