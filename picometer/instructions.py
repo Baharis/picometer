@@ -243,7 +243,6 @@ class LoadInstructionHandler(BaseInstructionHandler):
                 for atom_label in atoms.table.index[mask1 & mask2]:
                     u_atom = atoms.table.at[atom_label, 'Uiso'] * u_cif
                     atoms.table.loc[atom_label, u_columns] = u_atom[np.triu_indices(3)]
-                print(atoms.table)
 
         if not self.processor.settings['auto_write_unit_cell']:
             return
