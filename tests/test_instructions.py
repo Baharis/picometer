@@ -7,7 +7,6 @@ from typing import Iterable
 import unittest
 
 import numpy as np
-import pandas
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
