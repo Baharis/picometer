@@ -119,6 +119,20 @@ class AtomSet(Shape):
     def cart_xyz(self) -> np.ndarray:
         return self.orthogonalise(self.fract_xyz)
 
+    @property
+    def fract_uij(self) -> np.ndarray:
+        """Return a 3D array i.e. stack of 3x3 fract. displacement tensors."""
+        t = self.table
+        default = pd.Series([np.nan] * len(t), index=t.index)
+        uij = np.zeros((len(t), 3, 3), dtype=np.float64)
+        uij[:, 0, 0] = t.get('U11', default).to_numpy(dtype=np.float64)
+        uij[:, 1, 1] = t.get('U22', default).to_numpy(dtype=np.float64)
+        uij[:, 2, 2] = t.get('U33', default).to_numpy(dtype=np.float64)
+        uij[:, 0, 1] = uij[:, 1, 0] = t.get('U12', default).to_numpy(dtype=np.float64)
+        uij[:, 0, 2] = uij[:, 2, 0] = t.get('U13', default).to_numpy(dtype=np.float64)
+        uij[:, 1, 2] = uij[:, 2, 1] = t.get('U23', default).to_numpy(dtype=np.float64)
+        return uij
+
     def fractionalise(self, cart_xyz: np.ndarray) -> np.ndarray:
         """Multiply 3xN vector by crystallographic matrix to get fract coord"""
         return np.linalg.inv(self.base.A_d.T) @ cart_xyz
@@ -158,6 +172,17 @@ class AtomSet(Shape):
         data['fract_x'] = fract_xyz[:, 0]
         data['fract_y'] = fract_xyz[:, 1]
         data['fract_z'] = fract_xyz[:, 2]
+        if {'U11', 'U22', 'U33', 'U12', 'U13', 'U23'}.issubset(data.columns):
+            uij = self.fract_uij  # shape: (n_atoms, 3, 3)
+            mask = ~np.isnan(uij).all(axis=(1, 2))  # atoms with defined Uij
+            if np.any(mask):
+                uij_rot = (s := symm_op.tf) @ uij[mask] @ s.T
+                data.loc[mask, 'U11'] = uij_rot[:, 0, 0]
+                data.loc[mask, 'U22'] = uij_rot[:, 1, 1]
+                data.loc[mask, 'U33'] = uij_rot[:, 2, 2]
+                data.loc[mask, 'U12'] = uij_rot[:, 0, 1]
+                data.loc[mask, 'U13'] = uij_rot[:, 0, 2]
+                data.loc[mask, 'U23'] = uij_rot[:, 1, 2]
         return self.__class__(self.base, data)
 
     @property
