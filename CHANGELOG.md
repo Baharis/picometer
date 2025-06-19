@@ -1,6 +1,52 @@
 # CHANGELOG
 
 
+## v0.4.0 (2025-06-19)
+
+### :bug:
+
+- :bug: Explicitly assert that length of displacement selection is > 0
+  ([`d7bf38c`](https://github.com/Baharis/picometer/commit/d7bf38c5d974ffa0df6e290aae4ba82743e085cd))
+
+- :bug: Fix incorrect labelling when creating new U matrix
+  ([`9bd7a79`](https://github.com/Baharis/picometer/commit/9bd7a796ce3045b939333595f8c0b2d48b76b71b))
+
+- :bug: Remove a print remaining after debugging
+  ([`ffc1992`](https://github.com/Baharis/picometer/commit/ffc1992a1115b0ae221acdbec0e7a31fb2a88f21))
+
+### :sparkles:
+
+- :sparkles: Correctly transform the U matrix when applying transformation with off-diagonal matrix
+  elements
+  ([`265736a`](https://github.com/Baharis/picometer/commit/265736a6caac902dd51a69ef1f143770314c16b0))
+
+- :sparkles: introduce `settings.complete_uiso_from_umatrix`
+  ([`f18ff36`](https://github.com/Baharis/picometer/commit/f18ff361fb5e2b76aae9a87fe27bbea3b34bfa82))
+
+- :sparkles: introduce `settings.complete_umatrix_from_uiso`
+  ([`09f760e`](https://github.com/Baharis/picometer/commit/09f760eb3cb65edaf3fa30754a8fb8ee81a9f133))
+
+### Other
+
+- :white_check_mark: Add a file `cobalt.cif` for testing
+  ([`6faaae9`](https://github.com/Baharis/picometer/commit/6faaae9bae4d21aec2ecb69990a0ead6f2effbe3))
+
+- :white_check_mark: Add tests for `complete_uiso_from_umatrix` and `complete_umatrix_from_uiso`
+  settings
+  ([`de820c7`](https://github.com/Baharis/picometer/commit/de820c785dcd7e5cac2e34ab4018767fcf01e410))
+
+- :white_check_mark: Make atoms spherical in ferrocene2.cif test
+  ([`696e727`](https://github.com/Baharis/picometer/commit/696e72745fb10dd51fcab45c1b989b70e0fc43ad))
+
+- :white_check_mark: Test newly-implemented u-matrix transformation
+  ([`6703b9b`](https://github.com/Baharis/picometer/commit/6703b9b1e9ec835c2120e6e4776dfd1e67e69ab8))
+
+- 🔀 Merge pull request #8 from Baharis/development
+  ([`46e7bd2`](https://github.com/Baharis/picometer/commit/46e7bd2c3209af7d1cdec64a6287316c84b6d0db))
+
+✨ Correctly transform the U matrix when applying transformations
+
+
 ## v0.3.1 (2025-06-18)
 
 ### :bug:
