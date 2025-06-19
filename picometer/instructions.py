@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Union, Protocol
 
 from numpy import rad2deg
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -218,6 +219,31 @@ class LoadInstructionHandler(BaseInstructionHandler):
         label = cif_path + (':' + block_name if block_name else '')
         self.processor.model_states[label] = ModelState(atoms=atoms)
         logger.info(f'Loaded model state {label}')
+
+        if self.processor.settings['complete_uiso_from_umatrix']:
+            if 'U11' in atoms.table.columns:
+                if 'Uiso' not in atoms.table.columns:
+                    atoms.table['Uiso'] = pd.NA
+                u_equiv = atoms.table[['U11', 'U22', 'U33']].mean(axis=1)
+                atoms.table['Uiso'].fillna(u_equiv, inplace=True)
+
+        if self.processor.settings['complete_umatrix_from_uiso']:
+            u_columns = ['U11', 'U12', 'U13', 'U22', 'U23', 'U33']
+            if 'Uiso' in atoms.table.columns:
+                for col in u_columns:
+                    if col not in atoms.table.columns:
+                        atoms.table[col] = pd.NA
+                mask1 = atoms.table['Uiso'].notna()
+                mask2 = atoms.table[['U11', 'U22', 'U33']].isna().all(axis=1)
+                # based on http://dx.doi.org/10.1107/S0021889802008580
+                n_mat = np.diag([atoms.base.a_r, atoms.base.b_r, atoms.base.c_r])
+                n_inv = np.linalg.inv(n_mat)
+                u_star = (m := np.linalg.inv(atoms.base.A_d.T)) @ m.T
+                u_cif = n_inv @ u_star @ n_inv.T
+                for atom_label in atoms.table.index[mask1 & mask2]:
+                    u_atom = atoms.table.at[atom_label, 'Uiso'] * u_cif
+                    atoms.table.loc[atom_label, u_columns] = u_atom[np.triu_indices(3)]
+
         if not self.processor.settings['auto_write_unit_cell']:
             return
         et = self.processor.evaluation_table
@@ -326,6 +352,7 @@ class DisplacementInstructionHandler(SerialInstructionHandler):
 
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         focus = ms.nodes.locate(self.processor.selection)
+        assert len(focus) > 0
         for label, displacements in focus.table.iterrows():
             for suffix in 'Uiso U11 U22 U33 U23 U13 U12'.split():
                 label_ = label + '_' + suffix
