@@ -1,6 +1,26 @@
 # CHANGELOG
 
 
+## v0.5.0 (2025-07-01)
+
+### :bug:
+
+- :bug: Fix a down-casting FutureWarning when assigning Uiso
+  ([`410d5d9`](https://github.com/Baharis/picometer/commit/410d5d94770a4aa2a319ac11b9b6bb91bde56adc))
+
+### :sparkles:
+
+- :sparkles: New feature: set to get displacement_get_cartesian_eigenvalues
+  ([`5607fdb`](https://github.com/Baharis/picometer/commit/5607fdb7f8e916ab38571573204370e06dcbe135))
+
+### Other
+
+- 🔀 Merge pull request #9 from Baharis/development
+  ([`1d55263`](https://github.com/Baharis/picometer/commit/1d5526313c95177302f77ba6c37e8fa976819e91))
+
+✨ New feature: set to get `displacement_get_cartesian_eigenvalues`
+
+
 ## v0.4.0 (2025-06-19)
 
 ### :bug:
