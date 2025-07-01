@@ -360,6 +360,11 @@ class DisplacementInstructionHandler(SerialInstructionHandler):
                 value = getattr(displacements, suffix, None)
                 if value is not None:
                     self.processor.evaluation_table.loc[ms_key, label_] = value
+        if self.processor.settings['displacement_get_cartesian_eigenvalues']:
+            for label, es in zip(focus.table.index, focus.u_cartesian_eigenvalues):
+                for e, suffix in zip(es, ['Uce1', 'Uce2', 'Uce3']):
+                    label_ = label + '_' + suffix
+                    self.processor.evaluation_table.loc[ms_key, label_] = e
         logger.info(f'Noted displacement for current selection in model state {ms_key}')
 
 

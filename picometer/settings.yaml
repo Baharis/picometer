@@ -1,5 +1,6 @@
 settings:
   auto_write_unit_cell: True
   clear_selection_after_use: True
+  displacement_get_cartesian_eigenvalues: False
   complete_uiso_from_umatrix: False
   complete_umatrix_from_uiso: False

@@ -186,6 +186,21 @@ class AtomSet(Shape):
         return self.__class__(self.base, data)
 
     @property
+    def u_cartesian_eigenvalues(self):
+        u_columns = ['U11', 'U12', 'U13', 'U22', 'U23', 'U33']
+        eigenvalues = np.full((len(self), 3), np.nan)
+        if not set(u_columns).issubset(self.table.keys()):
+            return eigenvalues
+        u_fract = self.fract_uij  # Nx3n3 stack of abc-normalized U_cif tensors
+        a_mat = self.base.A_d.T  # fractional to orthogonal cartesian metric
+        n_mat = np.diag([self.base.a_r, self.base.b_r, self.base.c_r])
+        u_star = (n_mat @ u_fract) @ n_mat  # eq. 4b @ S0021889802008580
+        u_cart = (a_mat @ u_star) @ a_mat.T  # eq. 3a @ S0021889802008580
+        mask = ~self.table[u_columns].isna().any(axis=1)
+        eigenvalues[mask, :] = np.linalg.eigh(u_cart[mask, :, :])[0]
+        return eigenvalues
+
+    @property
     def centroid(self) -> np.ndarray:
         """A 3-vector with average atom position."""
         return self.cart_xyz.T.mean(axis=0)

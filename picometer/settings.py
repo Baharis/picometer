@@ -19,6 +19,7 @@ class DefaultSettings:
     """Store default values of all settings. Use `AnyValue` if no default."""
     auto_write_unit_cell: bool = True
     clear_selection_after_use: bool = True
+    displacement_get_cartesian_eigenvalues: bool = False
     complete_uiso_from_umatrix: bool = False
     complete_umatrix_from_uiso: bool = False
 
