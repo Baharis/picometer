@@ -225,7 +225,8 @@ class LoadInstructionHandler(BaseInstructionHandler):
                 if 'Uiso' not in atoms.table.columns:
                     atoms.table['Uiso'] = pd.NA
                 u_equiv = atoms.table[['U11', 'U22', 'U33']].mean(axis=1)
-                atoms.table['Uiso'].fillna(u_equiv, inplace=True)
+                mask = atoms.table['Uiso'].isna()
+                atoms.table.loc[mask, 'Uiso'] = u_equiv[mask]
 
         if self.processor.settings['complete_umatrix_from_uiso']:
             u_columns = ['U11', 'U12', 'U13', 'U22', 'U23', 'U33']
