@@ -316,7 +316,20 @@ class TestMeasuringInstructions(unittest.TestCase):
         p = process(Routine.from_string(r))
         results = p.evaluation_table['C(11)_U13'].to_numpy()
         self.assertAlmostEqual(results[0], 0.010286, places=6)
-        self.assertAlmostEqual(results[0], 0.010286, places=6)
+        self.assertAlmostEqual(results[1], 0.010286, places=6)
+        np.testing.assert_equal(results[2], np.nan)
+        np.testing.assert_equal(results[3], np.nan)
+        np.testing.assert_equal(results[4], np.nan)
+        np.testing.assert_equal(results[5], np.nan)
+
+    def test_displacement_displacement_get_cartesian_eigenvalues(self):
+        r = ('settings:  \n  complete_umatrix_from_uiso: True\n' +
+             '  displacement_get_cartesian_eigenvalues: True\n' + self.routine_text)
+        r += '  - select: C(11)\n  - displacement\n'
+        p = process(Routine.from_string(r))
+        results = p.evaluation_table['C(11)_Uce1'].to_numpy()
+        self.assertAlmostEqual(results[0], 0.020000, places=6)
+        self.assertAlmostEqual(results[1], 0.019980, places=6)
         np.testing.assert_equal(results[2], np.nan)
         np.testing.assert_equal(results[3], np.nan)
         np.testing.assert_equal(results[4], np.nan)
