@@ -224,7 +224,7 @@ class LoadInstructionHandler(BaseInstructionHandler):
             if 'U11' in atoms.table.columns:
                 if 'Uiso' not in atoms.table.columns:
                     atoms.table['Uiso'] = pd.NA
-                u_equiv = atoms.table[['U11', 'U22', 'U33']].mean(axis=1)
+                u_equiv = (atoms.table['U11'] + atoms.table['U22'] + atoms.table['U33']) / 3
                 mask = atoms.table['Uiso'].isna()
                 atoms.table.loc[mask, 'Uiso'] = u_equiv[mask]
 
@@ -302,8 +302,8 @@ class CentroidInstructionHandler(SerialInstructionHandler):
         label = instruction.kwargs['label']
         focus = ms.nodes.locate(self.processor.selection)
         c_fract = focus.fractionalise(focus.centroid)
-        c_atoms = {'label': [label], 'fract_x': [c_fract[0]],
-                   'fract_y': [c_fract[1]], 'fract_z': [c_fract[2]], }
+        c_atoms = {'label': [label], 'x': [c_fract[0]],
+                   'y': [c_fract[1]], 'z': [c_fract[2]], }
         atoms = pd.DataFrame.from_records(c_atoms).set_index('label')
         centroid = AtomSet(focus.base, atoms)
         ms.centroids += centroid
@@ -341,9 +341,9 @@ class CoordinatesInstructionHandler(SerialInstructionHandler):
     def handle_one(self, instruction: Instruction, ms_key: str, ms: ModelState) -> None:
         focus = ms.nodes.locate(self.processor.selection)
         for label, coords in focus.table.iterrows():
-            self.processor.evaluation_table.loc[ms_key, label + '_x'] = coords.fract_x
-            self.processor.evaluation_table.loc[ms_key, label + '_y'] = coords.fract_y
-            self.processor.evaluation_table.loc[ms_key, label + '_z'] = coords.fract_z
+            self.processor.evaluation_table.loc[ms_key, label + '_x'] = coords.x
+            self.processor.evaluation_table.loc[ms_key, label + '_y'] = coords.y
+            self.processor.evaluation_table.loc[ms_key, label + '_z'] = coords.z
         logger.info(f'Noted coordinates for current selection in model state {ms_key}')
 
 

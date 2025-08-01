@@ -2,12 +2,12 @@ import abc
 import copy
 import enum
 import logging
-from typing import Annotated, Literal, Protocol, Union
+from typing import Annotated, Literal, Protocol, Union, Sequence
 
 import numpy as np
 import numpy.typing as npt
-from numpy.linalg import norm
 
+from picometer.utility import norm
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +52,10 @@ def versorize(v: Vector3) -> Versor3:
 def degrees_between(v: Vector3, w: Vector3, normalize: bool = False) -> float:
     """Calculate angle between two vectors in degrees"""
     assert v.shape == w.shape
-    rad = np.arccos(
-        sum(v * w) / (np.sqrt(sum(v * v)) * np.sqrt(sum(w * w))))
-    deg = np.rad2deg(rad)
+    from uncertainties import unumpy as unp
+    rad = unp.arccos(
+        sum(v * w) / (unp.sqrt(sum(v * v)) * unp.sqrt(sum(w * w))))
+    deg = rad * (180 / np.pi)
     return 180. - deg if deg > 90. and normalize else deg
 
 

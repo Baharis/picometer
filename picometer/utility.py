@@ -1,6 +1,12 @@
 from typing import Iterable, List
 
+import numpy as np
 import uncertainties as uc
+import uncertainties.unumpy as unp
+
+
+def norm(values: np.ndarray) -> uc.UFloat:
+    return unp.sqrt(sum(values * values))
 
 
 def ustr2float(s: str) -> float:
@@ -11,3 +17,7 @@ def ustr2float(s: str) -> float:
 def ustr2floats(s: Iterable[str]) -> List[float]:
     """Convenience function to convert an iterable of u-strings to floats."""
     return [ustr2float(s) for s in s]
+
+def ustr2ufloats(s: Iterable[str]) -> List[uc.UFloat]:
+    """Convenience function to convert an iterable of u-strings to floats."""
+    return [uc.ufloat_fromstr(_) for _ in s]

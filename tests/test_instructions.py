@@ -6,9 +6,11 @@ from textwrap import dedent
 from typing import Iterable
 import unittest
 
+from pandas.testing import assert_frame_equal
 import numpy as np
 import pandas as pd
-from pandas.testing import assert_frame_equal
+import uncertainties as uc
+import uncertainties.unumpy as unp
 
 from picometer.atom import group_registry, Locator
 from picometer.instructions import Routine, Instruction
@@ -120,7 +122,8 @@ class TestSettingInstructions(unittest.TestCase):
     def test_load_single(self):
         p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
-            self.assertEqual(ms.atoms.table.loc['Fe', 'fract_x'], 0.0)
+            self.assertEqual(ms.atoms.table.loc['Fe', 'x'].nominal_value, 0.0)
+            self.assertEqual(ms.atoms.table.loc['Fe', 'x'].std_dev, 0.1)
 
     def test_load_grep(self):
         routine2_text = get_yaml('test_instructions.yaml', lines=range(2))
@@ -130,7 +133,12 @@ class TestSettingInstructions(unittest.TestCase):
         for (ms_key1, ms1), (ms_key2, ms2) in zip(p1.model_states.items(),
                                                   p2.model_states.items()):
             self.assertEqual(ms_key1, ms_key2)
-            self.assertTrue(ms1.atoms.table.equals(ms2.atoms.table))
+            n1 = unp.nominal_values(ms1.atoms.table.to_numpy())
+            n2 = unp.nominal_values(ms2.atoms.table.to_numpy())
+            s1 = unp.std_devs(ms1.atoms.table.to_numpy())
+            s2 = unp.std_devs(ms2.atoms.table.to_numpy())
+            np.testing.assert_allclose(n1, n2, err_msg="Nominal values differ")
+            np.testing.assert_allclose(s1, s2, err_msg="Std devs differ")
 
     def test_select_atom(self) -> None:
         self.routine_text += '  - select: Fe\n'
@@ -185,12 +193,12 @@ class TestSettingInstructions(unittest.TestCase):
         p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
             c = ms.centroids.table.loc['cp_A_centroid']
-            self.assertGreater(c['fract_x'], 0.113)
-            self.assertGreater(c['fract_y'], 0.154)
-            self.assertGreater(c['fract_z'], 0.016)
-            self.assertLess(c['fract_x'], 0.116)
-            self.assertLess(c['fract_y'], 0.158)
-            self.assertLess(c['fract_z'], 0.030)
+            self.assertGreater(c['x'], 0.113)
+            self.assertGreater(c['y'], 0.154)
+            self.assertGreater(c['z'], 0.016)
+            self.assertLess(c['x'], 0.116)
+            self.assertLess(c['y'], 0.158)
+            self.assertLess(c['z'], 0.030)
 
     def test_line(self):
         self.routine_text += '  - select: C.+\n'
@@ -234,8 +242,8 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text += '  - plane: cp_A_plane_at_iron'
         p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
-            o = ms.shapes['cp_A_plane_at_iron'].origin
-            f = ms.atoms.locate([Locator('iron')]).origin
+            o = unp.nominal_values(ms.shapes['cp_A_plane_at_iron'].origin)
+            f = unp.nominal_values(ms.atoms.locate([Locator('iron')]).origin)
             self.assertTrue(np.allclose(o, f))
 
     def test_group_at_group(self):
@@ -248,8 +256,8 @@ class TestSettingInstructions(unittest.TestCase):
         self.routine_text += '  - group: cp_B_at_cp_A'
         p = process(Routine.from_string(self.routine_text))
         for _, ms in p.model_states.items():
-            o_a = ms.nodes.locate([Locator('cp_A')]).origin
-            o_ba = ms.nodes.locate([Locator('cp_B_at_cp_A')]).origin
+            o_a = unp.nominal_values(ms.nodes.locate([Locator('cp_A')]).origin)
+            o_ba = unp.nominal_values(ms.nodes.locate([Locator('cp_B_at_cp_A')]).origin)
             self.assertTrue(np.allclose(o_a, o_ba))
             pd_b = ms.nodes.locate([Locator('cp_B')]).plane.direction
             pd_ba = ms.nodes.locate([Locator('cp_B_at_cp_A')]).plane.direction
@@ -292,10 +300,10 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - displacement\n'
         p = process(Routine.from_string(self.routine_text))
         results = p.evaluation_table['C(11)_Uiso'].to_numpy()
-        self.assertEqual(results[0], 0.02)
+        self.assertEqual(results[0].n, 0.02)
         np.testing.assert_equal(results[1], np.nan)
         results = p.evaluation_table['C(11)_U11'].to_numpy()
-        self.assertEqual(results[1], 0.02)
+        self.assertEqual(results[1].n, 0.02)
         np.testing.assert_equal(results[0], np.nan)
 
     def test_displacement_complete_uiso_from_umatrix(self):
@@ -303,8 +311,8 @@ class TestMeasuringInstructions(unittest.TestCase):
         r += '  - select: C(11)\n  - displacement\n'
         p = process(Routine.from_string(r))
         results = p.evaluation_table['C(11)_Uiso'].to_numpy()
-        self.assertEqual(results[0], 0.02)
-        self.assertEqual(results[1], 0.02)
+        self.assertEqual(results[0].n, 0.02)
+        self.assertEqual(results[1].n, 0.02)
         np.testing.assert_equal(results[2], np.nan)
         np.testing.assert_equal(results[3], np.nan)
         np.testing.assert_equal(results[4], np.nan)
@@ -315,8 +323,8 @@ class TestMeasuringInstructions(unittest.TestCase):
         r += '  - select: C(11)\n  - displacement\n'
         p = process(Routine.from_string(r))
         results = p.evaluation_table['C(11)_U13'].to_numpy()
-        self.assertAlmostEqual(results[0], 0.010286, places=6)
-        self.assertAlmostEqual(results[1], 0.010286, places=6)
+        self.assertAlmostEqual(results[0].n, 0.010286, places=6)
+        self.assertAlmostEqual(results[1].n, 0.010286, places=6)
         np.testing.assert_equal(results[2], np.nan)
         np.testing.assert_equal(results[3], np.nan)
         np.testing.assert_equal(results[4], np.nan)
@@ -340,7 +348,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: cp_B_plane\n'
         self.routine_text += '  - distance: cp_A_to_cp_B_plane_distance'
         p = process(Routine.from_string(self.routine_text))
-        results = p.evaluation_table['cp_A_to_cp_B_plane_distance'].to_numpy()
+        results = unp.nominal_values(p.evaluation_table['cp_A_to_cp_B_plane_distance'])
         correct = np.array([3.2864663644815, 3.2769672330907, 3.288974081930,
                             3.2875174042662, 3.2735236841099, 3.292997025065])
         self.assertTrue(np.allclose(results, correct))
@@ -431,7 +439,7 @@ class TestMeasuringInstructions(unittest.TestCase):
         self.routine_text += '  - select: C(13)\n'
         self.routine_text += '  - angle: C(11)-C(12)-C(13)'
         p = process(Routine.from_string(self.routine_text))
-        results = p.evaluation_table['C(11)-C(12)-C(13)'].to_numpy()
+        results = unp.nominal_values(p.evaluation_table['C(11)-C(12)-C(13)'])
         correct = np.array([107.99651216, 107.98120182, 107.98282958,
                             108.17779184, 108.12639300, 107.63799568])
         self.assertTrue(np.allclose(results, correct))
