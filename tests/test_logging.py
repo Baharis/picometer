@@ -2,7 +2,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from picometer.logging import add_file_handler, register_log_listener
+from picometer.logging_ import add_file_handler, register_log_listener
 from picometer.instructions import Routine
 from picometer.process import process
 from tests.test_instructions import get_yaml

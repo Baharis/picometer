@@ -1,6 +1,5 @@
 from copy import deepcopy
-from dataclasses import dataclass
-from typing import Annotated, Dict, Literal, NamedTuple, Optional, Sequence, Union
+from typing import Annotated, Dict, Literal, NamedTuple, Sequence
 import logging
 
 from hikari.dataframes import BaseFrame, CifFrame
@@ -8,7 +7,6 @@ from numpy.linalg import norm
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import uncertainties as uc
 import uncertainties.unumpy as unp
 
 from picometer.shapes import (are_synparallel, degrees_between, Line,
@@ -30,26 +28,6 @@ UFloatArrayNx3x3 = Annotated[npt.NDArray[np.object_], Literal['N', 3, 3]]
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class Atom:
-    """Simple dataclass to store single atom information."""
-    x: uc.UFloat
-    y: uc.UFloat
-    z: uc.UFloat
-    u_iso: Optional[uc.UFloat] = None
-    u11: Optional[uc.UFloat] = None
-    u22: Optional[uc.UFloat] = None
-    u33: Optional[uc.UFloat] = None
-    u12: Optional[uc.UFloat] = None
-    u13: Optional[uc.UFloat] = None
-    u23: Optional[uc.UFloat] = None
-
-    @property
-    def u(self) -> UFloatArray3x3:
-        return np.array([[self.u11, self.u12, self.u13],
-                         [self.u12, self.u22, self.u23],
-                         [self.u13, self.u23, self.u33]])
 
 
 class Locator(NamedTuple):
@@ -246,7 +224,7 @@ class AtomSet(Shape):
     def line(self) -> Line:
         """A 3-vector describing line that best fits the cartesian
         coordinates of atoms. Based on https://stackoverflow.com/q/2298390/"""
-        uu, dd, vv = np.linalg.svd(unp.nominal_values(self.cart_xyz.T - self.centroid))  # TODO
+        uu, dd, vv = np.linalg.svd(unp.nominal_values(self.cart_xyz.T - self.centroid))
         return Line(direction=vv[0], origin=self.centroid)
 
     @property
