@@ -40,28 +40,28 @@ class TestRoutine(unittest.TestCase):
     def test_routine_from_dict(self) -> None:
         dict_ = {
             'settings': {'setting_key': 'setting_value'},
-            'instructions': [{'load': {'path': 'ferrocene1.cif'}},
+            'instructions': [{'load': {'cif': 'ferrocene1.cif'}},
                              {'load': 'ferrocene2.cif'}]
         }
         routine = Routine.from_dict(dict_)
         self.assertEqual(len(routine), 3)  # one "set", two "load" instructions
         self.assertEqual('load', routine[1].keyword)
-        self.assertIn('path', routine[1].kwargs)
-        self.assertIn('ferrocene1.cif', routine[1].kwargs['path'])
+        self.assertIn('cif', routine[1].kwargs)
+        self.assertIn('ferrocene1.cif', routine[1].kwargs['cif'])
 
     def test_routine_from_string(self) -> None:
         str_ = dedent("""
         settings:
           setting_key: setting_value
         instructions:
-          - load: {path: ferrocene1.cif}
+          - load: {cif: ferrocene1.cif}
           - load: ferrocene2.cif
         """)
         routine = Routine.from_string(str_)
         self.assertEqual(len(routine), 3)  # 1 "set" and 2 "load" instructions
         self.assertEqual('load', routine[1].keyword)
-        self.assertIn('path', routine[1].kwargs)
-        self.assertIn('ferrocene1.cif', routine[1].kwargs['path'])
+        self.assertIn('cif', routine[1].kwargs)
+        self.assertIn('ferrocene1.cif', routine[1].kwargs['cif'])
 
     def test_routine_from_yaml(self) -> None:
         with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:

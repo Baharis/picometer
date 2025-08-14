@@ -203,19 +203,20 @@ class SerialInstructionHandler(BaseInstructionHandler):
 
 class LoadInstructionHandler(BaseInstructionHandler):
     name = 'load'
-    kwargs = dict(path=str, block=str)
+    kwargs = dict(cif=str, cov=str, block=str)
 
     def handle(self, instruction: Instruction) -> None:
-        cif_path = instruction.kwargs['path']
+        cif_path = instruction.kwargs['cif']
+        cov_path = instruction.kwargs['cov']
         block_name = instruction.kwargs['block']
-        if Path(cif_path).is_file():
-            self._load_model_state(cif_path, block_name)
+        if Path(cif_path).is_file() and (cov_path is None or Path(cov_path).is_file()):
+            self._load_model_state(cif_path, cov_path, block_name)
         else:
-            for cif_path in sorted(glob(cif_path)):
-                self._load_model_state(cif_path, block_name)
+            for cif, cov in zip(sorted(glob(cif_path)), sorted(glob(cov_path))):
+                self._load_model_state(cif, cov, block_name)
 
-    def _load_model_state(self, cif_path, block_name):
-        atoms = AtomSet.from_cif(cif_path=cif_path, block_name=block_name)
+    def _load_model_state(self, cif_path, cov_path, block_name) -> None:
+        atoms = AtomSet.from_paths(cif_path, cov_path, block_name)
         label = cif_path + (':' + block_name if block_name else '')
         self.processor.model_states[label] = ModelState(atoms=atoms)
         logger.info(f'Loaded model state {label}')

@@ -1,13 +1,19 @@
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Iterable, Optional
 import re
 
-from utility import ustr2float, ustr2ufloats
+from picometer.utility import AnyPath, ustr2float, ustr2floats, ustr2ufloats
 
 from hikari.dataframes import BaseFrame, CifBlock, CifFrame
 import numpy as np
 import pandas as pd
 import uncertainties as uc
+
+
+# warnings.filterwarnings("ignore", message="Using UFloat objects with std_dev==0.*")
+
+CovLoader = Callable[[AnyPath], pd.DataFrame]
+Ustr2xsFunc = Callable[[Iterable[str]], list[Any]]
 
 
 def matrix_triu2symm(vector: np.ndarray) -> np.ndarray:
@@ -20,13 +26,14 @@ def matrix_triu2symm(vector: np.ndarray) -> np.ndarray:
 
 
 class StructuralDataLoader:
-    def __init__(self):
-        """Reads & handles cif and covariance matrix (as a symmetric df)."""
-        self.cif: Optional[CifBlock] = None
-        self.cov: Optional[pd.DataFrame] = None
+    """Handle loading the crystal structure from .cif and covariance files."""
 
-    @property
-    def base(self) -> BaseFrame:
+    def __init__(self, cif: Optional[CifBlock] = None, cov: Optional[pd.DataFrame] = None) -> None:
+        """Reads & handles cif and covariance matrix (as a symmetric df)."""
+        self.cif: Optional[CifBlock] = cif
+        self.cov: Optional[pd.DataFrame] = cov
+
+    def get_base(self) -> BaseFrame:
         base_frame = BaseFrame()
         a = ustr2float(self.cif['_cell_length_a'])
         b = ustr2float(self.cif['_cell_length_b'])
@@ -37,58 +44,57 @@ class StructuralDataLoader:
         base_frame.edit_cell(a=a, b=b, c=c, al=al, be=be, ga=ga)
         return base_frame
 
-    @property
-    def atoms_uncorrelated(self) -> pd.DataFrame:
-        """Produce a dataframe with atom parameters as uncorrelated UFloats"""
+    def _get_atoms(self, ustr2xs_func: Ustr2xsFunc) -> pd.DataFrame:
         c = self.cif
         atoms = pd.DataFrame()
         atom_labels = c.get('_atom_site_label', [])
-        atom_xs = ustr2ufloats(c.get('_atom_site_fract_x', []))
-        atom_ys = ustr2ufloats(c.get('_atom_site_fract_y', []))
-        atom_zs = ustr2ufloats(c.get('_atom_site_fract_z', []))
-        atom_u_isos = ustr2ufloats(c.get('_atom_site_U_iso_or_equiv', []))
+        atom_xs = ustr2xs_func(c.get('_atom_site_fract_x', []))
+        atom_ys = ustr2xs_func(c.get('_atom_site_fract_y', []))
+        atom_zs = ustr2xs_func(c.get('_atom_site_fract_z', []))
+        atom_u_isos = ustr2xs_func(c.get('_atom_site_U_iso_or_equiv', []))
         for label, x, y, z in zip(atom_labels, atom_xs, atom_ys, atom_zs):
             atoms.loc[label, ['x', 'y', 'z']] = [x, y, z]
         for label, u_iso in zip(atom_labels, atom_u_isos):
             atoms.loc[label, 'Uiso'] = u_iso
         atom_labels = c.get('_atom_site_aniso_label', [])
-        atom_u11s = ustr2ufloats(c.get('_atom_site_aniso_U_11', []))
-        atom_u22s = ustr2ufloats(c.get('_atom_site_aniso_U_22', []))
-        atom_u33s = ustr2ufloats(c.get('_atom_site_aniso_U_33', []))
-        atom_u12s = ustr2ufloats(c.get('_atom_site_aniso_U_12', []))
-        atom_u13s = ustr2ufloats(c.get('_atom_site_aniso_U_13', []))
-        atom_u23s = ustr2ufloats(c.get('_atom_site_aniso_U_23', []))
+        atom_u11s = ustr2xs_func(c.get('_atom_site_aniso_U_11', []))
+        atom_u22s = ustr2xs_func(c.get('_atom_site_aniso_U_22', []))
+        atom_u33s = ustr2xs_func(c.get('_atom_site_aniso_U_33', []))
+        atom_u12s = ustr2xs_func(c.get('_atom_site_aniso_U_12', []))
+        atom_u13s = ustr2xs_func(c.get('_atom_site_aniso_U_13', []))
+        atom_u23s = ustr2xs_func(c.get('_atom_site_aniso_U_23', []))
         atom_us = zip(atom_u11s, atom_u22s, atom_u33s, atom_u12s, atom_u13s, atom_u23s)
         for label, us in zip(atom_labels, atom_us):
             atoms.loc[label, ['U11', 'U22', 'U33', 'U12', 'U13', 'U23']] = list(us)
         return atoms
 
-    @property
-    def correlated_atoms(self) -> pd.DataFrame:
+    def get_atoms_certain(self) -> pd.DataFrame:
+        """Produce a dataframe with atom parameters as certain Python floats"""
+        return self._get_atoms(ustr2xs_func=ustr2floats)
+
+    def get_atoms_uncorrelated(self) -> pd.DataFrame:
+        """Produce a dataframe with atom parameters as uncorrelated UFloats"""
+        return self._get_atoms(ustr2xs_func=ustr2ufloats)
+
+    def get_atoms_correlated(self) -> pd.DataFrame:
         """Produce a dataframe with atom parameters as correlated UFloats"""
-        # TODO consistent typing of symmetrical numpy and annotated dataframe
-        # TODO allow both certain (faster) and uncertain (with error) calculations
-        atoms = self.atoms_uncorrelated
+        atoms = self.get_atoms_uncorrelated()
         cov_labels = list(self.cov.columns)
         cov_matrix = self.cov.to_numpy()
-        cov_std_dev = np.sqrt(np.diag(cov_matrix))
-        # TODO: assert std dev from cif and from covariance agree
-
-        to_correlate = {}
-        atom_par = [label.rsplit('.', 2) for label in cov_labels]
-        for label, (atom, par) in zip(cov_labels, atom_par):
-            to_correlate[label] = atoms.at[par, atom].nominal_value
-        correlated = uc.correlated_values(
-            nom_values=to_correlate.values(),
-            covariance_mat=cov_matrix)
-        for corr, (atom, par) in zip(correlated, atom_par):
-            atoms[par, atom] = corr
+        correlated_values = []
+        atoms_params = [label.rsplit('.', 2) for label in cov_labels]
+        for label, (atom, param) in zip(cov_labels, atoms_params):
+            correlated_values.append(atoms.at[param, atom].nominal_value)
+        correlated = uc.correlated_values(correlated_values, cov_matrix)
+        for corr, (atom, param) in zip(correlated, atoms_params):
+            atoms[param, atom] = corr
         return atoms
 
     def covariance_star_to_cif(self, cov: pd.DataFrame) -> pd.DataFrame:
         """Scale Uij in cov. matrix by N-1 (10.1107/S0021889802008580, 4a)."""
         scaled = cov.copy()
-        n_matrix_diag = (1 / self.base.a_r, 1 / self.base.b_r, 1 / self.base.c_r)
+        base = self.get_base()
+        n_matrix_diag = (1 / base.a_r, 1 / base.b_r, 1 / base.c_r)
         covariance_u_scaling_factors = {
             'u11': n_matrix_diag[0] * n_matrix_diag[0],
             'u22': n_matrix_diag[1] * n_matrix_diag[1],
@@ -106,13 +112,25 @@ class StructuralDataLoader:
         scaled.index = scaled_labels
         return scaled
 
-    def load_cif(self, path: Path) -> None:
+    def load_cif(self, path: AnyPath, block: Optional[str] = None) -> None:
         cif_frame = CifFrame()
         cif_frame.read(str(path))
-        self.cif: CifBlock = cif_frame[list(cif_frame.keys())[0]]
+        block_name = block if block else list(cif_frame.keys())[0]
+        self.cif: CifBlock = cif_frame[block_name]
 
-    def load_olex2_covariance(self, path: Path) -> None:
-        with open(path, "rb") as npy_file:
+    def load_cov(self, path: AnyPath) -> None:
+        """Covariance matrix that could be read using one of `COV_LOADERS`."""
+        for cov_loader in [self.load_cov_olex2]:
+            try:
+                cov_loader(path)
+            except IOError:
+                pass
+            else:
+                return
+        raise RuntimeError('Could not load covariance matrix using any of the loaders')
+
+    def load_cov_olex2(self, path: AnyPath) -> None:
+        with open(Path(path), "rb") as npy_file:
             first_line = npy_file.readline()
             assert first_line == b"VCOV\n", f'Incorrect file format: {npy_file}'
             labels = [a.decode('UTF-8') for a in npy_file.readline().split()]

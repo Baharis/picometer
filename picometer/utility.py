@@ -1,8 +1,12 @@
-from typing import Iterable, List
+import os
+from typing import Iterable, List, Union
 
 import numpy as np
 import uncertainties as uc
 import uncertainties.unumpy as unp
+
+
+AnyPath = Union[str, bytes, os.PathLike]
 
 
 def norm(values: np.ndarray) -> uc.UFloat:

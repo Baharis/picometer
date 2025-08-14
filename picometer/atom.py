@@ -9,6 +9,7 @@ import numpy.typing as npt
 import pandas as pd
 import uncertainties.unumpy as unp
 
+from picometer.loader import StructuralDataLoader
 from picometer.shapes import (are_synparallel, degrees_between, Line,
                               Plane, Shape, Vector3)
 from picometer.utility import norm, ustr2float, ustr2ufloats
@@ -82,44 +83,15 @@ class AtomSet(Shape):
         return self.copy(table=deepcopy(self.table[mask]))
 
     @classmethod
-    def from_cif(cls, cif_path: str, block_name: str = None) -> 'AtomSet':
+    def from_paths(cls, cif_path: str, cov_path: str, block_name: str = None) -> 'AtomSet':
         """Initialize from cif file using hikari's `BaseFrame` and `CifFrame`"""
-        bf = BaseFrame()
-        cf = CifFrame()
-        cf.read(cif_path)
-        block_name = block_name if block_name else list(cf.keys())[0]
-        cb = cf[block_name]
-        bf.edit_cell(a=ustr2float(cb['_cell_length_a']),
-                     b=ustr2float(cb['_cell_length_b']),
-                     c=ustr2float(cb['_cell_length_c']),
-                     al=ustr2float(cb['_cell_angle_alpha']),
-                     be=ustr2float(cb['_cell_angle_beta']),
-                     ga=ustr2float(cb['_cell_angle_gamma']))
-
-        atoms = pd.DataFrame()
-
-        atom_labels = cb.get('_atom_site_label', [])
-        atom_xs = ustr2ufloats(cb.get('_atom_site_fract_x', []))
-        atom_ys = ustr2ufloats(cb.get('_atom_site_fract_y', []))
-        atom_zs = ustr2ufloats(cb.get('_atom_site_fract_z', []))
-        atom_u_isos = ustr2ufloats(cb.get('_atom_site_U_iso_or_equiv', []))
-        for label, x, y, z in zip(atom_labels, atom_xs, atom_ys, atom_zs):
-            atoms.loc[label, ['x', 'y', 'z']] = [x, y, z]
-        for label, u_iso in zip(atom_labels, atom_u_isos):
-            atoms.loc[label, 'Uiso'] = u_iso
-
-        atom_labels = cb.get('_atom_site_aniso_label', [])
-        atom_u11s = ustr2ufloats(cb.get('_atom_site_aniso_U_11', []))
-        atom_u22s = ustr2ufloats(cb.get('_atom_site_aniso_U_22', []))
-        atom_u33s = ustr2ufloats(cb.get('_atom_site_aniso_U_33', []))
-        atom_u12s = ustr2ufloats(cb.get('_atom_site_aniso_U_12', []))
-        atom_u13s = ustr2ufloats(cb.get('_atom_site_aniso_U_13', []))
-        atom_u23s = ustr2ufloats(cb.get('_atom_site_aniso_U_23', []))
-        atom_us = zip(atom_u11s, atom_u22s, atom_u33s, atom_u12s, atom_u13s, atom_u23s)
-        for label, us in zip(atom_labels, atom_us):
-            atoms.loc[label, ['U11', 'U22', 'U33', 'U12', 'U13', 'U23']] = list(us)
-
-        return AtomSet(base=bf, table=atoms)
+        loader = StructuralDataLoader()
+        loader.load_cif(cif_path, block_name)
+        base = loader.get_base()
+        if cov_path is not None:
+            loader.load_cov(cov_path)
+            return cls(base=base, table=loader.get_atoms_correlated())
+        return cls(base=base, table=loader.get_atoms_certain())
 
     @property
     def fract_xyz(self) -> UFloatArrayNx3:
