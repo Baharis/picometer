@@ -1,4 +1,8 @@
 # read version from installed package
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = version("picometer")
+
+try:
+    __version__ = version('picometer')
+except PackageNotFoundError:
+    __version__ = '0+unknown'
