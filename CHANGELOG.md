@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v0.5.1 (2026-08-24)
+
+### :bug:
+
+- :bug: Correctly transform Uij in non-orthogonal systems
+  ([`94bddd0`](https://github.com/Baharis/picometer/commit/94bddd02625cfa70c815a866e701138b51eac8a5))
+
+- :bug: Fix __version__ being undefined at dev setup unless picometer is installed
+  ([`f1c88f2`](https://github.com/Baharis/picometer/commit/f1c88f2fbb99c801e7d2c0147f2bb4a87ae17d2e))
+
+### Other
+
+- Merge pull request #10 from Baharis/development
+  ([`d0c91c0`](https://github.com/Baharis/picometer/commit/d0c91c0307b8bde30f0a5dcc974d1942808bca50))
+
+🐛 Fix __version__ undefined at dev setup and Uij transformations
+
+- 💚 Upgrade publishing, actions/checkout to version 6
+  ([`8225583`](https://github.com/Baharis/picometer/commit/8225583b5bc426400fabbdc11d1dd440b614a857))
+
+Updated actions/checkout version from v4 to v6 in CI/CD workflow.
+
+
 ## v0.5.0 (2025-07-01)
 
 ### :bug:
