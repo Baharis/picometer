@@ -127,6 +127,7 @@ jobs:
       if: steps.release.outputs.released == 'true'
       with:
         repository-url: https://test.pypi.org/legacy/
+        attestations: false
 
     - name: Test install from TestPyPI
       run: |
@@ -138,6 +139,8 @@ jobs:
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       if: steps.release.outputs.released == 'true'
+      with:
+        skip-existing: true
 
     - name: Publish package distributions to GitHub Releases
       uses: python-semantic-release/publish-action@v9
