@@ -121,8 +121,7 @@ The following instructions are currently supported by picometer:
   - fit `plane` to the currect atom / centroid selection;
 - **Evaluation instructions**
   - write out fractional `coordinates` of currently selected centroids or atoms.
-  - write out `displacement` parameters of currently selected centroids or atoms
-    (note: currently does not correctly handle symmetry transformations).
+  - write out `displacement` parameters of currently selected centroids or atoms.
   - measure `distance` between 2 selected objects; if the selection includes
     groups of atoms, measure closes distance to the group of atoms.
   - measure `angle` between 2–3 selected objects: planes, lines, or (ordered) atoms.
