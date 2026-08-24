@@ -176,7 +176,9 @@ class AtomSet(Shape):
             uij = self.fract_uij  # shape: (n_atoms, 3, 3)
             mask = ~np.isnan(uij).all(axis=(1, 2))  # atoms with defined Uij
             if np.any(mask):
-                uij_rot = (s := symm_op.tf) @ uij[mask] @ s.T
+                abc_r = [self.base.a_r, self.base.b_r, self.base.c_r]
+                k = np.diag([1 / a for a in abc_r]) @ symm_op.tf @ np.diag(abc_r)
+                uij_rot = k @ uij[mask] @ k.T
                 data.loc[mask, 'U11'] = uij_rot[:, 0, 0]
                 data.loc[mask, 'U22'] = uij_rot[:, 1, 1]
                 data.loc[mask, 'U33'] = uij_rot[:, 2, 2]
