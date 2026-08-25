@@ -412,7 +412,12 @@ class ReadInstructionHandler(BaseInstructionHandler):
     kwargs = dict(path=Path)
 
     def handle(self, instruction: Instruction) -> None:
-        path = instruction.kwargs['path']
+        path = Path(instruction.kwargs['path'])
+        paths = [path] if path.is_file() else sorted(glob(str(path)))
+        for path in paths:
+            self._read_table(str(path))
+
+    def _read_table(self, path: str) -> None:
         old = self.processor.evaluation_table
         new = pd.read_csv(path, index_col=0)
 

@@ -517,6 +517,19 @@ class TestMeasuringInstructions(unittest.TestCase):
         assert_frame_equal(correct, results, check_exact=False,
                            rtol=1e-13, atol=1e-12)
 
+    def test_read_many(self):
+        with importlib.resources.path('tests', 'test_ferrocene.yaml') as yaml_path:
+            tests_path = yaml_path.parent
+            routine_tmp = 'instructions:\n  - read: {}/ferrocene_corr*.csv\n'
+            routine_text = routine_tmp.format(tests_path)
+        p = process(Routine.from_string(routine_text))
+        correct_path = tests_path / 'ferrocene_correct.csv'
+        correct = pd.read_csv(correct_path, index_col=0)
+        results = p.evaluation_table
+        results.index = correct.index  # index is env-dependent so ignore it
+        assert_frame_equal(correct, results, check_exact=False,
+                           rtol=1e-13, atol=1e-12)
+
     def test_document_history(self):
         routine_text = get_yaml('test_ferrocene.yaml')
         original_routine = Routine.from_string(routine_text)
