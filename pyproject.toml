@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "picometer"
-version = "0.5.1"
+version = "0.6.0"
 description = "Precisely define and calculate measurements across multiple crystal structures"
 authors = ["Daniel Tchoń"]
 license = "MIT"

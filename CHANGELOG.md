@@ -1,6 +1,30 @@
 # CHANGELOG
 
 
+## v0.6.0 (2026-08-25)
+
+### :sparkles:
+
+- :sparkles: Add instruction: `read` previous evaluation tables
+  ([`56d71fa`](https://github.com/Baharis/picometer/commit/56d71fada6cb9ce80ac1fc50cba249df0595568e))
+
+- :sparkles: Load multiple evaluation files using glob, add tests
+  ([`09c4b2c`](https://github.com/Baharis/picometer/commit/09c4b2cb0e7bf30bd13bb94f40a602798eadbe90))
+
+### Other
+
+- ✨ Merge pull request #11 from Baharis/development
+  ([`d767813`](https://github.com/Baharis/picometer/commit/d76781324b861698445cb4c6a48ed150f16b4754))
+
+✨ Add instruction: read previous evaluation tables
+
+- 💚 Temporarily add workflow to publish 0.5.1 to PyPI
+  ([`5a93686`](https://github.com/Baharis/picometer/commit/5a93686cda393a3d509791cc13678f96465865ca))
+
+- 💚 Upgrade publishing to avoid PyPI attestation issues in future
+  ([`04f659b`](https://github.com/Baharis/picometer/commit/04f659b1cf6bbe452911f38acb675416e6dacc0a))
+
+
 ## v0.5.1 (2026-08-24)
 
 ### :bug:
