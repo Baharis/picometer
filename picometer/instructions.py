@@ -407,6 +407,27 @@ class DihedralInstructionHandler(SerialInstructionHandler):
         logger.info(f'Evaluated dihedral {label}: {dihedral} for model state {ms_key}')
 
 
+class ReadInstructionHandler(BaseInstructionHandler):
+    name = 'read'
+    kwargs = dict(path=Path)
+
+    def handle(self, instruction: Instruction) -> None:
+        path = instruction.kwargs['path']
+        old = self.processor.evaluation_table
+        new = pd.read_csv(path, index_col=0)
+
+        if old.empty:
+            self.processor.evaluation_table = new
+        else:
+            index = old.index.union(new.index)
+            columns = old.columns.union(new.columns)
+            old = old.reindex(index=index, columns=columns)
+            old.update(new)
+            self.processor.evaluation_table = old
+
+        logger.info(f'Loaded evaluation table from {path}')
+
+
 class WriteInstructionHandler(BaseInstructionHandler):
     name = 'write'
     kwargs = dict(path=Path)
