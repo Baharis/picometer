@@ -104,6 +104,7 @@ The following instructions are currently supported by picometer:
   - `load` model from a cif file, given `filename` or mapping syntax:
     `{path: filename.cif, block: cif_block}`.
   - `write` table with all evaluations to a csv file.
+  - `read` table with previous evaluation (to append further).
 - **Selection instructions**
   - `select` atoms, groups, or shapes to be used; use raw element names
     or provide symmetry relation / recenter using mapping syntax, for example:
